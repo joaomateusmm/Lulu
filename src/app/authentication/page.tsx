@@ -1,13 +1,42 @@
-import { CalendarSearch, Scissors } from "lucide-react";
+import { CalendarSearch, Menu, Scissors } from "lucide-react";
 import Image from "next/image";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Authentication = () => {
   return (
-    <div className="flex min-h-screen flex-col bg-[#F2EEEF] p-4">
+    <div className="flex min-h-screen flex-col bg-[#F2EEEF]">
+      {/* Header */}
+      <header className="flex items-center justify-between bg-white px-6 py-3 shadow-sm">
+        <div className="flex items-center rounded-md bg-[#f7f7f7] px-2 py-1">
+          <h2 className="text-lg font-bold text-purple-700">BarberFy</h2>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Menu className="h-6 w-6" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="mr-2">
+            <DropdownMenuLabel>BarberFy</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Agendar Corte</DropdownMenuItem>
+            <DropdownMenuItem>Ver Agendamentos</DropdownMenuItem>
+            <DropdownMenuItem>Serviços</DropdownMenuItem>
+            <DropdownMenuItem>Contato</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </header>
+
       {/* Conteúdo principal centralizado */}
-      <div className="flex flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center p-4">
         <div className="flex max-w-md flex-col items-center gap-6 text-center">
-          <div className="mb-4 flex h-33 w-33 items-center justify-center rounded-full bg-white shadow-lg">
+          <div className="mb-4 flex h-36 w-36 items-center justify-center rounded-full bg-white shadow-lg">
             <Image
               src="/logo.png"
               alt="Logo Andrews Barber"
@@ -18,7 +47,7 @@ const Authentication = () => {
           </div>
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-gray-800">
-              Bem-vindo à Andrews Barber
+              Bem-vindo à BarberFy
             </h1>
             <p className="text-gray-600">O que você deseja fazer?</p>
           </div>
@@ -48,7 +77,7 @@ const Authentication = () => {
       {/* Rodapé fixo na parte inferior */}
       <footer className="flex justify-center py-4">
         <p className="text-sm text-gray-500">
-          © 2025 Barbearia - Todos os direitos reservados
+          © 2025 BarberFy - Todos os direitos reservados
         </p>
       </footer>
     </div>
