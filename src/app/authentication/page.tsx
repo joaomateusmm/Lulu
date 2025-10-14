@@ -1,17 +1,11 @@
 "use client";
 
-import { CalendarSearch, Menu, Scissors } from "lucide-react";
+import { CalendarSearch, Scissors } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Header } from "@/components/header";
 
 import SignInForm from "./components/sign-in-form";
 
@@ -54,17 +48,16 @@ const Authentication = () => {
           </p>
         </div>
 
-        <div
-          className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95"
-          onClick={() => handleViewChange("appointments")}
-        >
-          <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-            <CalendarSearch className="h-14 w-14 text-gray-700" />
+        <Link href="/">
+          <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
+            <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
+              <CalendarSearch className="h-14 w-14 text-gray-700" />
+            </div>
+            <p className="text-sm font-medium text-gray-700">
+              Ver meus<br></br> Agendamentos
+            </p>
           </div>
-          <p className="text-sm font-medium text-gray-700">
-            Ver meus<br></br> Agendamentos
-          </p>
-        </div>
+        </Link>
       </div>
     </div>
   );
@@ -108,24 +101,7 @@ const Authentication = () => {
   return (
     <div className="flex min-h-screen flex-col bg-[#F2EEEF]">
       {/* Header */}
-      <header className="flex items-center justify-between bg-white px-10 py-3 shadow-sm">
-        <div className="flex items-center rounded-md">
-          <h2 className="text-primary text-lg font-bold">BarberFy</h2>
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Menu className="h-6 w-6" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="mr-2">
-            <DropdownMenuLabel>BarberFy</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Agendar Corte</DropdownMenuItem>
-            <DropdownMenuItem>Ver Agendamentos</DropdownMenuItem>
-            <DropdownMenuItem>Serviços</DropdownMenuItem>
-            <DropdownMenuItem>Contato</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </header>
+      <Header />
 
       {/* Logo fixa */}
       <div className="flex justify-center">

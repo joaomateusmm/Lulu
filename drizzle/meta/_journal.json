@@ -15,6 +15,20 @@
       "when": 1760014693961,
       "tag": "0001_burly_nomad",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1760449107539,
+      "tag": "0002_fresh_green_goblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1760459492244,
+      "tag": "0003_unusual_tarantula",
+      "breakpoints": true
     }
   ]
 }

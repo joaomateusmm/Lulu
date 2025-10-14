@@ -99,12 +99,42 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
       return;
     }
 
-    // Aqui você implementaria a lógica de agendamento
-    toast.success("Agendamento realizado com sucesso!");
+    try {
+      // Salvar agendamento via API (cria conta automaticamente)
+      const response = await fetch("/api/appointments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: values.name,
+          phone: values.phone,
+          appointmentDate: values.date.toISOString(),
+          appointmentTime: values.time,
+        }),
+      });
 
-    // Exemplo: resetar form após sucesso
-    form.reset();
-    setShowDateTimeFields(false);
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success("Agendamento realizado com sucesso!");
+
+        // Salvar o userId no localStorage para uso posterior
+        if (result.userId) {
+          localStorage.setItem("barberfy_user_id", result.userId);
+        }
+
+        // Redirecionar para a página principal após 1.5 segundos
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1500);
+      } else {
+        toast.error(result.message || "Erro ao realizar agendamento.");
+      }
+    } catch (error) {
+      console.error("Erro ao salvar agendamento:", error);
+      toast.error("Erro ao realizar agendamento. Tente novamente.");
+    }
   }
 
   function onSubmit(values: FormValues) {
