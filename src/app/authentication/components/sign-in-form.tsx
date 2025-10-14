@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -10,6 +10,14 @@ import z from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Form,
   FormControl,
@@ -53,6 +61,19 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
     },
   });
 
+  // Função para verificar se todos os campos estão preenchidos
+  const watchedValues = form.watch();
+  const isFirstStepComplete =
+    watchedValues.name &&
+    watchedValues.phone &&
+    watchedValues.name.length >= 1 &&
+    watchedValues.phone.length >= 10;
+  const isAllFieldsComplete =
+    isFirstStepComplete &&
+    showDateTimeFields &&
+    watchedValues.date &&
+    watchedValues.time;
+
   async function onContinue(values: FormValues) {
     if (!values.name.trim()) {
       form.setError("name", { message: "Nome inválido" });
@@ -89,7 +110,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
   function onSubmit(values: FormValues) {
     if (!showDateTimeFields) {
       return onContinue(values);
-    } else {
+    } else if (isAllFieldsComplete) {
       return onSchedule(values);
     }
   }
@@ -125,7 +146,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
                     <FormControl>
                       <Input
                         placeholder="Digite seu nome completo"
-                        className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        className="h-11 border-gray-300 bg-gray-50 text-sm shadow-md focus:border-blue-500 focus:ring-blue-500"
                         {...field}
                       />
                     </FormControl>
@@ -146,7 +167,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
                       <Input
                         placeholder="(11) 99999-9999"
                         type="tel"
-                        className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        className="h-11 border-gray-300 bg-gray-50 text-sm shadow-md focus:border-blue-500 focus:ring-blue-500"
                         {...field}
                       />
                     </FormControl>
@@ -158,8 +179,8 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
 
             {/* Campos de Data e Hora - aparecem após clicar em Continuar */}
             {showDateTimeFields && (
-              <div className="animate-in slide-in-from-bottom-4 space-y-4 duration-300">
-                <div className="flex gap-4">
+              <div className="animate-in fade-in slide-in-from-bottom-2 space-y-4 duration-500 ease-out">
+                <div className="flex flex-col gap-4">
                   <FormField
                     control={form.control}
                     name="date"
@@ -174,7 +195,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
                               <Button
                                 variant="outline"
                                 className={cn(
-                                  "h-11 w-full justify-start text-left font-normal",
+                                  "h-11 w-full justify-start text-left font-normal shadow-md",
                                   !field.value && "text-muted-foreground",
                                 )}
                               >
@@ -212,31 +233,59 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
                         <FormLabel className="text-sm font-medium text-gray-700">
                           Hora do corte
                         </FormLabel>
-                        <FormControl>
-                          <select
-                            className="flex h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                            {...field}
-                          >
-                            <option value="">Selecione um horário</option>
-                            <option value="08:00">08:00</option>
-                            <option value="08:30">08:30</option>
-                            <option value="09:00">09:00</option>
-                            <option value="09:30">09:30</option>
-                            <option value="10:00">10:00</option>
-                            <option value="10:30">10:30</option>
-                            <option value="11:00">11:00</option>
-                            <option value="11:30">11:30</option>
-                            <option value="14:00">14:00</option>
-                            <option value="14:30">14:30</option>
-                            <option value="15:00">15:00</option>
-                            <option value="15:30">15:30</option>
-                            <option value="16:00">16:00</option>
-                            <option value="16:30">16:30</option>
-                            <option value="17:00">17:00</option>
-                            <option value="17:30">17:30</option>
-                            <option value="18:00">18:00</option>
-                          </select>
-                        </FormControl>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "h-11 w-full justify-start text-left font-normal shadow-md",
+                                  !field.value && "text-muted-foreground",
+                                )}
+                              >
+                                <Clock className="mr-2 h-4 w-4" />
+                                {field.value || "Selecione um horário"}
+                              </Button>
+                            </FormControl>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="max-h-60 w-full overflow-y-auto">
+                            <DropdownMenuLabel>
+                              Horários disponíveis
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {[
+                              "08:00",
+                              "08:30",
+                              "09:00",
+                              "09:30",
+                              "10:00",
+                              "10:30",
+                              "11:00",
+                              "11:30",
+                              "12:00",
+                              "12:30",
+                              "13:00",
+                              "13:30",
+                              "14:00",
+                              "14:30",
+                              "15:00",
+                              "15:30",
+                              "16:00",
+                              "16:30",
+                              "17:00",
+                              "17:30",
+                              "18:00",
+                            ].map((time) => (
+                              <DropdownMenuItem
+                                key={time}
+                                onClick={() => field.onChange(time)}
+                                className="cursor-pointer"
+                              >
+                                {time}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         <FormMessage className="text-sm text-red-500" />
                       </FormItem>
                     )}
@@ -246,12 +295,33 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
             )}
 
             {/* Botão que muda de "Continuar" para "Agendar" */}
-            <div className="pt-4">
+            <div className="pt-3">
               <Button
                 type="submit"
-                className="h-12 w-full rounded-lg bg-blue-600 font-medium text-white shadow-sm transition-colors duration-200 hover:bg-blue-700"
+                className={cn(
+                  "relative h-10 w-full overflow-hidden rounded-full font-medium shadow-md transition-all duration-500",
+                  isAllFieldsComplete
+                    ? "bg-primary hover:bg-primary border-transparent text-white shadow-md"
+                    : "border-primary text-primary border-2 bg-white shadow-md hover:bg-purple-50",
+                )}
               >
-                {showDateTimeFields ? "Agendar" : "Continuar"}
+                {/* Animação de preenchimento do background */}
+                <div
+                  className={cn(
+                    "bg-primary absolute inset-0 transition-transform duration-700 ease-out",
+                    isAllFieldsComplete ? "translate-x-0" : "-translate-x-full",
+                  )}
+                />
+
+                {/* Texto do botão */}
+                <span
+                  className={cn(
+                    "relative z-10 transition-colors duration-300",
+                    isAllFieldsComplete ? "text-white" : "text-primary",
+                  )}
+                >
+                  {isAllFieldsComplete ? "Agendar" : "Continuar"}
+                </span>
               </Button>
             </div>
           </form>

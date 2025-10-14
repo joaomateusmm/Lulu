@@ -108,9 +108,9 @@ const Authentication = () => {
   return (
     <div className="flex min-h-screen flex-col bg-[#F2EEEF]">
       {/* Header */}
-      <header className="flex items-center justify-between bg-white px-6 py-3 shadow-sm">
-        <div className="flex items-center rounded-md bg-[#f7f7f7] px-2 py-1">
-          <h2 className="text-lg font-bold text-purple-700">BarberFy</h2>
+      <header className="flex items-center justify-between bg-white px-10 py-3 shadow-sm">
+        <div className="flex items-center rounded-md">
+          <h2 className="text-primary text-lg font-bold">BarberFy</h2>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger>
@@ -128,8 +128,8 @@ const Authentication = () => {
       </header>
 
       {/* Logo fixa */}
-      <div className="mt-25 -mb-25 flex justify-center">
-        <div className="flex h-35 w-35 items-center justify-center rounded-full bg-white shadow-lg">
+      <div className="flex justify-center">
+        <div className="mt-5 flex h-35 w-35 items-center justify-center rounded-full bg-white shadow-lg">
           <Image
             src="/logo.png"
             alt="Logo BarberFy"
