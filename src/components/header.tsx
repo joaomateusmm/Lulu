@@ -44,8 +44,11 @@ export const Header = () => {
               Ver Agendamentos
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>Serviços</DropdownMenuItem>
-          <DropdownMenuItem>Contato</DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="https://wa.link/e35ygr" className="cursor-pointer">
+              Contato
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleLogout}

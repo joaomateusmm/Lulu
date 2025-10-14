@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { EyeClosed, Scissors } from "lucide-react";
+import { Scissors } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -24,11 +24,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
 
 const Authentication = () => {
   const { user, appointments, loading, error } = useUserData();
@@ -172,79 +167,138 @@ const Authentication = () => {
         <p className="text-muted-foreground mt-2 mb-3 text-sm font-bold">
           Nossos Serviços:
         </p>
-        <Carousel className="w-full">
-          <CarouselContent className="-ml-7">
-            {/* Serviço 1 - Corte de Cabelo */}
-            <CarouselItem className="basis-1/2 pl-2">
-              <Link href="/authentication">
-                <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
-                  <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-                    <Scissors className="h-14 w-14 rotate-270 text-gray-700" />
-                  </div>
-                  <p className="text-center text-sm font-medium text-gray-700">
-                    Corte de Cabelo
-                  </p>
-                </div>
-              </Link>
-            </CarouselItem>
 
-            {/* Serviço 2 - Barba */}
-            <CarouselItem className="basis-1/2 pl-2">
-              <Link href="/authentication">
-                <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
-                  <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-                    <div
-                      className="flex h-14 w-14 items-center justify-center"
-                      style={{
-                        filter:
-                          "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(93%) contrast(85%)",
-                      }}
-                    >
-                      <Image
-                        src="/assets/beard-icon.svg"
-                        alt="Ícone de Barba"
-                        width={56}
-                        height={56}
-                        className="object-contain"
-                      />
-                    </div>
+        {/* Grid de Serviços - 1 card centralizado na primeira linha, 2 na segunda */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Serviço 1 - Corte de Cabelo (Centralizado) */}
+          <div className="col-span-2 flex justify-center">
+            <Link href="/authentication">
+              <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
+                <div className="flex h-28 w-28 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
+                  <div
+                    className="flex h-12 w-12 items-center justify-center"
+                    style={{
+                      filter:
+                        "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                    }}
+                  >
+                    <Image
+                      src="/assets/hair-icon.svg"
+                      alt="Ícone de Corte de Cabelo"
+                      width={48}
+                      height={48}
+                      className="object-contain"
+                    />
                   </div>
-                  <p className="text-center text-sm font-medium text-gray-700">
-                    Barba
-                  </p>
                 </div>
-              </Link>
-            </CarouselItem>
+                <p className="text-center text-sm font-medium text-gray-700">
+                  Corte de Cabelo
+                </p>
+              </div>
+            </Link>
+          </div>
 
-            {/* Serviço 3 - Sobrancelha */}
-            <CarouselItem className="basis-1/2 pl-2">
-              <Link href="/authentication">
-                <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
-                  <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-                    <EyeClosed className="h-14 w-14 text-gray-700" />
-                  </div>
-                  <p className="text-center text-sm font-medium text-gray-700">
-                    Sobrancelha
-                  </p>
+          {/* Serviço 2 - Barba */}
+          <Link href="/authentication">
+            <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
+              <div className="flex h-28 w-28 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
+                <div
+                  className="flex h-12 w-12 items-center justify-center"
+                  style={{
+                    filter:
+                      "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                  }}
+                >
+                  <Image
+                    src="/assets/beard-icon.svg"
+                    alt="Ícone de Barba"
+                    width={48}
+                    height={48}
+                    className="object-contain"
+                  />
                 </div>
-              </Link>
-            </CarouselItem>
+              </div>
+              <p className="text-center text-sm font-medium text-gray-700">
+                Barba
+              </p>
+            </div>
+          </Link>
 
-            {/* Serviço 4 - Exemplo adicional */}
-            <CarouselItem className="basis-1/2 pl-2">
-              <Link href="/authentication">
-                <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
-                  <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-                    <Scissors className="h-14 w-14 text-gray-700" />
-                  </div>
-                  <p className="text-center text-sm font-medium text-gray-700">
-                    Cabelo + Barba
-                  </p>
+          {/* Serviço 3 - Barba + Cabelo */}
+          <Link href="/authentication">
+            <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
+              <div className="flex h-28 w-28 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
+                <div
+                  className="flex h-12 w-12 items-center justify-center"
+                  style={{
+                    filter:
+                      "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                  }}
+                >
+                  <Image
+                    src="/assets/hairstyle-icon.svg"
+                    alt="Ícone de Barba + Cabelo"
+                    width={48}
+                    height={48}
+                    className="object-contain"
+                  />
                 </div>
-              </Link>
-            </CarouselItem>
-          </CarouselContent>
-        </Carousel>
+              </div>
+              <p className="text-center text-sm font-medium text-gray-700">
+                Barba + Cabelo
+              </p>
+            </div>
+          </Link>
+        </div>
+        <p className="text-muted-foreground mt-6 mb-2 text-sm font-bold">
+          Nossa Localização:
+        </p>
+
+        {/* Card de Localização */}
+        <div className="rounded-lg bg-white p-4 shadow-md">
+          {/* Mapa */}
+          <div
+            className="mb-4 h-40 w-full rounded-md bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: "url('/maps.jpg')",
+            }}
+          ></div>
+
+          {/* Informações da Barbearia */}
+          <div className="flex flex-col gap-3">
+            <div>
+              <h3 className="mb-1 text-lg font-bold text-gray-700">BarberFy</h3>
+              <p className="text-muted-foreground text-sm">
+                Rua das Flores, 123 - Centro
+                <br />
+                São Paulo, SP - CEP: 01234-567
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="text-muted-foreground text-sm">
+                <p>
+                  <span className="font-medium">Horário:</span>
+                </p>
+                <p>Segunda à Sexta: 9h às 18h</p>
+                <p>Sábado: 8h às 17h</p>
+              </div>
+            </div>
+
+            {/* Botão Ver no Maps */}
+            <a
+              href="https://maps.app.goo.gl/RCqmydex1Sz3x5rAA"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-primary hover:bg-primary/90 rounded-lg px-4 py-3 text-center text-sm font-medium text-white shadow-md transition-colors duration-200 hover:shadow-lg"
+            >
+              Ver no Google Maps
+            </a>
+          </div>
+        </div>
+        <p className="text-muted-foreground mt-6 text-xs font-bold">
+          © 2025 BarberFy - Todos os direitos reservados.
+        </p>
       </main>
     </div>
   );
