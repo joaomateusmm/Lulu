@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { boolean, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -63,18 +70,28 @@ export const verification = pgTable("verification", {
 });
 
 // Tabela de Agendamentos
-export const appointmentTable = pgTable("appointment", {
-  id: uuid().primaryKey().defaultRandom(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  serviceType: text("service_type").notNull(), // "corte-cabelo", "corte-barba", "cabelo-barba"
-  appointmentDate: timestamp("appointment_date").notNull(),
-  appointmentTime: text("appointment_time").notNull(), // Formato: "14:30"
-  status: text("status").notNull().default("scheduled"), // scheduled, completed, cancelled
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export const appointmentTable = pgTable(
+  "appointment",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    serviceType: text("service_type").notNull(), // "corte-cabelo", "corte-barba", "cabelo-barba"
+    appointmentDate: timestamp("appointment_date").notNull(),
+    appointmentTime: text("appointment_time").notNull(), // Formato: "14:30"
+    status: text("status").notNull().default("scheduled"), // scheduled, completed, cancelled
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    // Constraint única: não pode haver dois agendamentos no mesmo dia e horário
+    uniqueDateTimeConstraint: unique("unique_date_time").on(
+      table.appointmentDate,
+      table.appointmentTime,
+    ),
+  }),
+);
 
 // Relacionamentos para Agendamentos
 export const appointmentRelations = relations(appointmentTable, ({ one }) => ({

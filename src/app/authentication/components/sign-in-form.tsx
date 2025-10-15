@@ -53,6 +53,12 @@ interface SignInFormProps {
 
 const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
   const [showDateTimeFields, setShowDateTimeFields] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [allTimeSlotsWithStatus, setAllTimeSlotsWithStatus] = useState<
+    { time: string; available: boolean }[]
+  >([]);
+  const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
 
   // Função para formatar telefone automaticamente
   const formatPhone = (value: string) => {
@@ -79,6 +85,36 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
     const cleanPhone = phone.replace(/\D/g, "");
     // Deve ter exatamente 11 dígitos e começar com 9 após o DDD
     return cleanPhone.length === 11 && cleanPhone[2] === "9";
+  };
+
+  // Função para buscar horários disponíveis
+  const fetchAvailableTimeSlots = async (date: Date) => {
+    setLoadingTimeSlots(true);
+
+    try {
+      const dateString = format(date, "yyyy-MM-dd");
+      const response = await fetch(
+        `/api/appointments/available-times?date=${dateString}`,
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setAvailableTimeSlots(result.data.availableTimeSlots);
+        setAllTimeSlotsWithStatus(result.data.allTimeSlotsWithStatus);
+      } else {
+        toast.error("Erro ao carregar horários disponíveis.");
+        setAvailableTimeSlots([]);
+        setAllTimeSlotsWithStatus([]);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar horários:", error);
+      toast.error("Erro ao carregar horários disponíveis.");
+      setAvailableTimeSlots([]);
+      setAllTimeSlotsWithStatus([]);
+    } finally {
+      setLoadingTimeSlots(false);
+    }
   };
 
   const form = useForm<FormValues>({
@@ -131,7 +167,37 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
       return;
     }
 
+    setIsLoading(true);
+
     try {
+      // Verificar disponibilidade em tempo real antes de enviar
+      const dateString = format(values.date, "yyyy-MM-dd");
+      const availabilityResponse = await fetch(
+        `/api/appointments/available-times?date=${dateString}`,
+      );
+
+      const availabilityResult = await availabilityResponse.json();
+
+      if (availabilityResponse.ok && availabilityResult.success) {
+        const currentlyAvailable = availabilityResult.data.availableTimeSlots;
+        const currentAllTimeSlotsWithStatus =
+          availabilityResult.data.allTimeSlotsWithStatus;
+
+        // Verificar se o horário selecionado ainda está disponível
+        if (!currentlyAvailable.includes(values.time)) {
+          toast.error(
+            "Este horário foi ocupado por outro cliente. Escolha outro horário.",
+          );
+          // Atualizar as listas de horários
+          setAvailableTimeSlots(currentlyAvailable);
+          setAllTimeSlotsWithStatus(currentAllTimeSlotsWithStatus);
+          // Limpar a seleção de horário
+          form.setValue("time", "");
+          setIsLoading(false);
+          return;
+        }
+      }
+
       // Salvar agendamento via API (cria conta automaticamente)
       const response = await fetch("/api/appointments", {
         method: "POST",
@@ -141,6 +207,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
         body: JSON.stringify({
           name: values.name,
           phone: values.phone.replace(/\D/g, ""), // Envia apenas números
+          serviceType: "corte-cabelo", // Valor padrão para a página authentication
           appointmentDate: values.date.toISOString(),
           appointmentTime: values.time,
         }),
@@ -166,6 +233,8 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
     } catch (error) {
       console.error("Erro ao salvar agendamento:", error);
       toast.error("Erro ao realizar agendamento. Tente novamente.");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -279,7 +348,14 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
                             <Calendar
                               mode="single"
                               selected={field.value}
-                              onSelect={field.onChange}
+                              onSelect={(date) => {
+                                field.onChange(date);
+                                if (date) {
+                                  fetchAvailableTimeSlots(date);
+                                  // Limpar seleção de hora quando data mudar
+                                  form.setValue("time", "");
+                                }
+                              }}
                               disabled={(date) =>
                                 date < new Date(new Date().setHours(0, 0, 0, 0))
                               }
@@ -291,7 +367,6 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="time"
@@ -317,40 +392,54 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="max-h-60 w-full overflow-y-auto">
                             <DropdownMenuLabel>
-                              Horários disponíveis
+                              Horários de funcionamento
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            {[
-                              "08:00",
-                              "08:30",
-                              "09:00",
-                              "09:30",
-                              "10:00",
-                              "10:30",
-                              "11:00",
-                              "11:30",
-                              "12:00",
-                              "12:30",
-                              "13:00",
-                              "13:30",
-                              "14:00",
-                              "14:30",
-                              "15:00",
-                              "15:30",
-                              "16:00",
-                              "16:30",
-                              "17:00",
-                              "17:30",
-                              "18:00",
-                            ].map((time) => (
-                              <DropdownMenuItem
-                                key={time}
-                                onClick={() => field.onChange(time)}
-                                className="cursor-pointer"
-                              >
-                                {time}
-                              </DropdownMenuItem>
-                            ))}
+                            {loadingTimeSlots ? (
+                              <div className="flex items-center justify-center p-4">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+                                <span className="ml-2 text-sm text-gray-500">
+                                  Carregando...
+                                </span>
+                              </div>
+                            ) : allTimeSlotsWithStatus.length === 0 ? (
+                              <div className="p-4 text-center">
+                                <span className="text-sm text-gray-500">
+                                  {watchedValues.date
+                                    ? "Erro ao carregar horários"
+                                    : "Selecione uma data primeiro"}
+                                </span>
+                              </div>
+                            ) : (
+                              allTimeSlotsWithStatus.map((slot) => {
+                                if (slot.available) {
+                                  // Horário disponível - pode ser clicado
+                                  return (
+                                    <DropdownMenuItem
+                                      key={slot.time}
+                                      onClick={() => field.onChange(slot.time)}
+                                      className="cursor-pointer hover:bg-gray-100"
+                                    >
+                                      {slot.time}
+                                    </DropdownMenuItem>
+                                  );
+                                } else {
+                                  // Horário ocupado - não pode ser clicado
+                                  return (
+                                    <DropdownMenuItem
+                                      key={slot.time}
+                                      className="cursor-not-allowed bg-gray-100 opacity-70"
+                                      onSelect={(e) => {
+                                        e.preventDefault();
+                                        return false;
+                                      }}
+                                    >
+                                      {slot.time} - Ocupado
+                                    </DropdownMenuItem>
+                                  );
+                                }
+                              })
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                         <FormMessage className="text-sm text-red-500" />
@@ -365,10 +454,11 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
             <div className="pt-3">
               <Button
                 type="submit"
+                disabled={isLoading}
                 className={cn(
                   "relative h-10 w-full overflow-hidden rounded-full font-medium shadow-md transition-all duration-500",
                   isAllFieldsComplete
-                    ? "bg-primary hover:bg-primary border-transparent text-white shadow-md"
+                    ? "bg-primary hover:bg-primary border-transparent text-white shadow-md disabled:opacity-75"
                     : "border-primary text-primary border-2 bg-white shadow-md hover:bg-purple-50",
                 )}
               >
@@ -383,11 +473,20 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
                 {/* Texto do botão */}
                 <span
                   className={cn(
-                    "relative z-10 transition-colors duration-300",
+                    "relative z-10 flex items-center justify-center gap-2 transition-colors duration-300",
                     isAllFieldsComplete ? "text-white" : "text-primary",
                   )}
                 >
-                  {isAllFieldsComplete ? "Agendar" : "Continuar"}
+                  {isLoading ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Agendando...
+                    </>
+                  ) : isAllFieldsComplete ? (
+                    "Agendar"
+                  ) : (
+                    "Continuar"
+                  )}
                 </span>
               </Button>
             </div>

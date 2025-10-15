@@ -6,13 +6,14 @@ import { ptBR } from "date-fns/locale";
 import {
   CalendarIcon,
   ChevronLeft,
+  Clock,
   Pencil,
   Scissors,
   Trash,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -28,7 +29,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Form,
   FormControl,
@@ -77,8 +88,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 const Authentication = () => {
   const { user, appointments, loading, error, refreshData } = useUserData();
@@ -269,6 +278,11 @@ const Authentication = () => {
   }: {
     appointment: Appointment;
   }) => {
+    const [allTimeSlotsWithStatus, setAllTimeSlotsWithStatus] = useState<
+      { time: string; available: boolean }[]
+    >([]);
+    const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
+
     const form = useForm<EditAppointmentFormData>({
       resolver: zodResolver(editAppointmentSchema),
       defaultValues: {
@@ -277,6 +291,41 @@ const Authentication = () => {
         appointmentTime: appointment.appointmentTime,
       },
     });
+
+    // Função para buscar horários disponíveis
+    const fetchAvailableTimeSlots = async (date: Date) => {
+      setLoadingTimeSlots(true);
+
+      try {
+        const dateString = format(date, "yyyy-MM-dd");
+        const response = await fetch(
+          `/api/appointments/available-times?date=${dateString}`,
+        );
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          setAllTimeSlotsWithStatus(result.data.allTimeSlotsWithStatus);
+        } else {
+          toast.error("Erro ao carregar horários disponíveis.");
+          setAllTimeSlotsWithStatus([]);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar horários:", error);
+        toast.error("Erro ao carregar horários disponíveis.");
+        setAllTimeSlotsWithStatus([]);
+      } finally {
+        setLoadingTimeSlots(false);
+      }
+    };
+
+    // Buscar horários quando a data mudar
+    const watchedDate = form.watch("appointmentDate");
+    useEffect(() => {
+      if (watchedDate) {
+        fetchAvailableTimeSlots(watchedDate);
+      }
+    }, [watchedDate]);
 
     const onSubmit = (data: EditAppointmentFormData) => {
       handleEditAppointment(appointment.id, data);
@@ -296,13 +345,13 @@ const Authentication = () => {
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione o tipo de serviço" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="w-full">
                     <SelectItem value="corte-cabelo">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-4">
                         <div
                           className="flex h-4 w-4 items-center justify-center"
                           style={{
@@ -322,7 +371,7 @@ const Authentication = () => {
                       </div>
                     </SelectItem>
                     <SelectItem value="corte-barba">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-4">
                         <div
                           className="flex h-4 w-4 items-center justify-center"
                           style={{
@@ -342,7 +391,7 @@ const Authentication = () => {
                       </div>
                     </SelectItem>
                     <SelectItem value="cabelo-barba">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-4">
                         <div
                           className="flex h-4 w-4 items-center justify-center"
                           style={{
@@ -380,16 +429,16 @@ const Authentication = () => {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "pl-3 text-left font-normal",
+                          "w-full justify-start text-left font-normal",
                           !field.value && "text-muted-foreground",
                         )}
                       >
+                        <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
                         {field.value ? (
                           format(field.value, "dd/MM/yyyy", { locale: ptBR })
                         ) : (
                           <span>Selecione uma data</span>
                         )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -397,9 +446,16 @@ const Authentication = () => {
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={field.onChange}
+                      onSelect={(date) => {
+                        field.onChange(date);
+                        if (date) {
+                          // Limpar seleção de horário quando data mudar
+                          form.setValue("appointmentTime", "");
+                        }
+                      }}
                       disabled={(date) =>
-                        date < new Date() || date < new Date("1900-01-01")
+                        date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                        date < new Date("1900-01-01")
                       }
                       initialFocus
                     />
@@ -416,44 +472,93 @@ const Authentication = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Horário</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um horário" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="09:00">09:00</SelectItem>
-                    <SelectItem value="09:30">09:30</SelectItem>
-                    <SelectItem value="10:00">10:00</SelectItem>
-                    <SelectItem value="10:30">10:30</SelectItem>
-                    <SelectItem value="11:00">11:00</SelectItem>
-                    <SelectItem value="11:30">11:30</SelectItem>
-                    <SelectItem value="14:00">14:00</SelectItem>
-                    <SelectItem value="14:30">14:30</SelectItem>
-                    <SelectItem value="15:00">15:00</SelectItem>
-                    <SelectItem value="15:30">15:30</SelectItem>
-                    <SelectItem value="16:00">16:00</SelectItem>
-                    <SelectItem value="16:30">16:30</SelectItem>
-                    <SelectItem value="17:00">17:00</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !field.value && "text-muted-foreground",
+                        )}
+                      >
+                        <Clock className="mr-2 h-4 w-4 text-gray-600" />
+                        {field.value || "Selecione um horário"}
+                      </Button>
+                    </FormControl>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="max-h-60 w-full overflow-y-auto">
+                    <DropdownMenuLabel>
+                      Horários de funcionamento
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {loadingTimeSlots ? (
+                      <div className="flex items-center justify-center p-4">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+                        <span className="ml-2 text-sm text-gray-500">
+                          Carregando...
+                        </span>
+                      </div>
+                    ) : allTimeSlotsWithStatus.length === 0 ? (
+                      <div className="p-4 text-center">
+                        <span className="text-sm text-gray-500">
+                          Selecione uma data primeiro
+                        </span>
+                      </div>
+                    ) : (
+                      allTimeSlotsWithStatus.map((slot) => {
+                        // Verificar se este é o horário atual do agendamento
+                        const isCurrentAppointmentTime =
+                          slot.time === appointment.appointmentTime;
+
+                        // Se for o horário atual do agendamento, sempre mostrar como disponível
+                        if (isCurrentAppointmentTime || slot.available) {
+                          // Horário disponível - pode ser clicado
+                          return (
+                            <DropdownMenuItem
+                              key={slot.time}
+                              onClick={() => field.onChange(slot.time)}
+                              className="cursor-pointer hover:bg-gray-100"
+                            >
+                              {slot.time}
+                              {isCurrentAppointmentTime && " (atual)"}
+                            </DropdownMenuItem>
+                          );
+                        } else {
+                          // Horário ocupado - não pode ser clicado
+                          return (
+                            <DropdownMenuItem
+                              key={slot.time}
+                              className="cursor-not-allowed bg-gray-100 opacity-70"
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                return false;
+                              }}
+                            >
+                              {slot.time} - Ocupado
+                            </DropdownMenuItem>
+                          );
+                        }
+                      })
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <div className="flex items-center justify-end gap-2 pt-4">
-            <AlertDialogCancel onClick={() => setEditDialogOpen(false)}>
+          <div className="flex items-center justify-center gap-2 pt-4">
+            <AlertDialogCancel
+              className="shadow-md"
+              onClick={() => setEditDialogOpen(false)}
+            >
               Cancelar
             </AlertDialogCancel>
             <Button
               type="submit"
               disabled={editingAppointmentId === appointment.id}
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary hover:bg-primary/90 text-white shadow-md"
             >
               {editingAppointmentId === appointment.id ? (
                 <>
@@ -699,7 +804,7 @@ const Authentication = () => {
                                 Editar
                               </Button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent className="max-w-md">
+                            <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>
                                   Editar Agendamento

@@ -66,6 +66,11 @@ const SignInForm = ({
   preSelectedService,
 }: SignInFormProps) => {
   const [showDateTimeFields, setShowDateTimeFields] = useState(false);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [allTimeSlotsWithStatus, setAllTimeSlotsWithStatus] = useState<
+    { time: string; available: boolean }[]
+  >([]);
+  const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
   const { user, loading } = useUserData();
 
   // Função para formatar telefone automaticamente
@@ -93,6 +98,36 @@ const SignInForm = ({
     const cleanPhone = phone.replace(/\D/g, "");
     // Deve ter exatamente 11 dígitos e começar com 9 após o DDD
     return cleanPhone.length === 11 && cleanPhone[2] === "9";
+  };
+
+  // Função para buscar horários disponíveis
+  const fetchAvailableTimeSlots = async (date: Date) => {
+    setLoadingTimeSlots(true);
+
+    try {
+      const dateString = format(date, "yyyy-MM-dd");
+      const response = await fetch(
+        `/api/appointments/available-times?date=${dateString}`,
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setAvailableTimeSlots(result.data.availableTimeSlots);
+        setAllTimeSlotsWithStatus(result.data.allTimeSlotsWithStatus);
+      } else {
+        toast.error("Erro ao carregar horários disponíveis.");
+        setAvailableTimeSlots([]);
+        setAllTimeSlotsWithStatus([]);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar horários:", error);
+      toast.error("Erro ao carregar horários disponíveis.");
+      setAvailableTimeSlots([]);
+      setAllTimeSlotsWithStatus([]);
+    } finally {
+      setLoadingTimeSlots(false);
+    }
   };
 
   const form = useForm<FormValues>({
@@ -176,6 +211,33 @@ const SignInForm = ({
     }
 
     try {
+      // Verificar disponibilidade em tempo real antes de enviar
+      const dateString = format(values.date, "yyyy-MM-dd");
+      const availabilityResponse = await fetch(
+        `/api/appointments/available-times?date=${dateString}`,
+      );
+
+      const availabilityResult = await availabilityResponse.json();
+
+      if (availabilityResponse.ok && availabilityResult.success) {
+        const currentlyAvailable = availabilityResult.data.availableTimeSlots;
+        const currentAllTimeSlotsWithStatus =
+          availabilityResult.data.allTimeSlotsWithStatus;
+
+        // Verificar se o horário selecionado ainda está disponível
+        if (!currentlyAvailable.includes(values.time)) {
+          toast.error(
+            "Este horário foi ocupado por outro cliente. Escolha outro horário.",
+          );
+          // Atualizar as listas de horários
+          setAvailableTimeSlots(currentlyAvailable);
+          setAllTimeSlotsWithStatus(currentAllTimeSlotsWithStatus);
+          // Limpar a seleção de horário
+          form.setValue("time", "");
+          return;
+        }
+      }
+
       // Salvar agendamento via API (cria conta automaticamente)
       const response = await fetch("/api/appointments", {
         method: "POST",
@@ -385,7 +447,14 @@ const SignInForm = ({
                             <Calendar
                               mode="single"
                               selected={field.value}
-                              onSelect={field.onChange}
+                              onSelect={(date) => {
+                                field.onChange(date);
+                                if (date) {
+                                  fetchAvailableTimeSlots(date);
+                                  // Limpar seleção de hora quando data mudar
+                                  form.setValue("time", "");
+                                }
+                              }}
                               disabled={(date) =>
                                 date < new Date(new Date().setHours(0, 0, 0, 0))
                               }
@@ -423,40 +492,54 @@ const SignInForm = ({
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="max-h-60 w-full overflow-y-auto">
                             <DropdownMenuLabel>
-                              Horários disponíveis
+                              Horários de funcionamento
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            {[
-                              "08:00",
-                              "08:30",
-                              "09:00",
-                              "09:30",
-                              "10:00",
-                              "10:30",
-                              "11:00",
-                              "11:30",
-                              "12:00",
-                              "12:30",
-                              "13:00",
-                              "13:30",
-                              "14:00",
-                              "14:30",
-                              "15:00",
-                              "15:30",
-                              "16:00",
-                              "16:30",
-                              "17:00",
-                              "17:30",
-                              "18:00",
-                            ].map((time) => (
-                              <DropdownMenuItem
-                                key={time}
-                                onClick={() => field.onChange(time)}
-                                className="cursor-pointer"
-                              >
-                                {time}
-                              </DropdownMenuItem>
-                            ))}
+                            {loadingTimeSlots ? (
+                              <div className="flex items-center justify-center p-4">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+                                <span className="ml-2 text-sm text-gray-500">
+                                  Carregando...
+                                </span>
+                              </div>
+                            ) : allTimeSlotsWithStatus.length === 0 ? (
+                              <div className="p-4 text-center">
+                                <span className="text-sm text-gray-500">
+                                  {watchedValues.date
+                                    ? "Erro ao carregar horários"
+                                    : "Selecione uma data primeiro"}
+                                </span>
+                              </div>
+                            ) : (
+                              allTimeSlotsWithStatus.map((slot) => {
+                                if (slot.available) {
+                                  // Horário disponível - pode ser clicado
+                                  return (
+                                    <DropdownMenuItem
+                                      key={slot.time}
+                                      onClick={() => field.onChange(slot.time)}
+                                      className="cursor-pointer hover:bg-gray-100"
+                                    >
+                                      {slot.time}
+                                    </DropdownMenuItem>
+                                  );
+                                } else {
+                                  // Horário ocupado - não pode ser clicado
+                                  return (
+                                    <DropdownMenuItem
+                                      key={slot.time}
+                                      className="cursor-not-allowed bg-gray-100 opacity-70"
+                                      onSelect={(e) => {
+                                        e.preventDefault();
+                                        return false;
+                                      }}
+                                    >
+                                      {slot.time} - Ocupado
+                                    </DropdownMenuItem>
+                                  );
+                                }
+                              })
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                         <FormMessage className="text-sm text-red-500" />

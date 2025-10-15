@@ -1,0 +1,1 @@
+ALTER TABLE "appointment" ADD CONSTRAINT "unique_date_time" UNIQUE("appointment_date","appointment_time");

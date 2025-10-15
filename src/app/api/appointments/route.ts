@@ -46,27 +46,60 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Criar o agendamento vinculado ao usuário
-    const [appointment] = await db
-      .insert(appointmentTable)
-      .values({
-        userId: userId,
-        serviceType: validatedData.serviceType,
-        appointmentDate: validatedData.appointmentDate,
-        appointmentTime: validatedData.appointmentTime,
-        status: "scheduled",
-      })
-      .returning();
+    // Tentar criar o agendamento
+    // A constraint única do banco de dados vai prevenir conflitos automaticamente
+    try {
+      const [appointment] = await db
+        .insert(appointmentTable)
+        .values({
+          userId: userId,
+          serviceType: validatedData.serviceType,
+          appointmentDate: validatedData.appointmentDate,
+          appointmentTime: validatedData.appointmentTime,
+          status: "scheduled",
+        })
+        .returning();
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Agendamento criado com sucesso!",
-        appointment,
-        userId, // Retornar o userId para usar na sessão
-      },
-      { status: 201 },
-    );
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Agendamento criado com sucesso!",
+          appointment,
+          userId, // Retornar o userId para usar na sessão
+        },
+        { status: 201 },
+      );
+    } catch (dbError: unknown) {
+      // Verificar se é erro de constraint única (código 23505 do PostgreSQL)
+      const error = dbError as {
+        code?: string;
+        message?: string;
+        detail?: string;
+        cause?: { code?: string; detail?: string };
+      };
+
+      // Verificar o código tanto no error quanto no cause
+      const errorCode = error.code || error.cause?.code;
+      const errorDetail = error.detail || error.cause?.detail;
+
+      if (
+        errorCode === "23505" ||
+        error.message?.includes("unique_date_time") ||
+        errorDetail?.includes("unique_date_time")
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Este horário já está ocupado. Por favor, escolha outro horário.",
+          },
+          { status: 409 }, // Conflict
+        );
+      }
+
+      // Se for outro erro do banco, relançar para ser capturado pelo catch externo
+      throw dbError;
+    }
   } catch (error) {
     console.error("Erro ao criar agendamento:", error);
 
