@@ -36,7 +36,10 @@ import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
-  phone: z.string().min(10, "Número de telefone inválido"),
+  phone: z
+    .string()
+    .min(15, "Telefone deve ter o formato (DD) 9XXXX-XXXX")
+    .max(15, "Telefone inválido"),
   date: z.date().optional(),
   time: z.string().optional(),
 });
@@ -50,6 +53,33 @@ interface SignInFormProps {
 
 const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
   const [showDateTimeFields, setShowDateTimeFields] = useState(false);
+
+  // Função para formatar telefone automaticamente
+  const formatPhone = (value: string) => {
+    // Remove tudo que não é dígito
+    const cleanValue = value.replace(/\D/g, "");
+
+    // Aplica a máscara (DD) 9XXXX-XXXX
+    if (cleanValue.length <= 2) {
+      return `(${cleanValue}`;
+    } else if (cleanValue.length <= 3) {
+      return `(${cleanValue.slice(0, 2)}) ${cleanValue.slice(2)}`;
+    } else if (cleanValue.length <= 7) {
+      return `(${cleanValue.slice(0, 2)}) ${cleanValue.slice(2, 3)}${cleanValue.slice(3)}`;
+    } else if (cleanValue.length <= 11) {
+      return `(${cleanValue.slice(0, 2)}) ${cleanValue.slice(2, 3)}${cleanValue.slice(3, 7)}-${cleanValue.slice(7, 11)}`;
+    }
+
+    // Limita a 11 dígitos máximo
+    return `(${cleanValue.slice(0, 2)}) ${cleanValue.slice(2, 3)}${cleanValue.slice(3, 7)}-${cleanValue.slice(7, 11)}`;
+  };
+
+  // Função para validar se o telefone tem o formato correto
+  const isValidPhone = (phone: string) => {
+    const cleanPhone = phone.replace(/\D/g, "");
+    // Deve ter exatamente 11 dígitos e começar com 9 após o DDD
+    return cleanPhone.length === 11 && cleanPhone[2] === "9";
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -67,7 +97,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
     watchedValues.name &&
     watchedValues.phone &&
     watchedValues.name.length >= 1 &&
-    watchedValues.phone.length >= 10;
+    isValidPhone(watchedValues.phone);
   const isAllFieldsComplete =
     isFirstStepComplete &&
     showDateTimeFields &&
@@ -80,8 +110,10 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
       return;
     }
 
-    if (!values.phone.trim() || values.phone.length < 10) {
-      form.setError("phone", { message: "Número inválido" });
+    if (!values.phone.trim() || !isValidPhone(values.phone)) {
+      form.setError("phone", {
+        message: "Telefone deve ter o formato (DD) 9XXXX-XXXX",
+      });
       return;
     }
 
@@ -108,7 +140,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
         },
         body: JSON.stringify({
           name: values.name,
-          phone: values.phone,
+          phone: values.phone.replace(/\D/g, ""), // Envia apenas números
           appointmentDate: values.date.toISOString(),
           appointmentTime: values.time,
         }),
@@ -198,7 +230,12 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
                         placeholder="(11) 99999-9999"
                         type="tel"
                         className="h-11 border-gray-300 bg-gray-50 text-sm shadow-md focus:border-blue-500 focus:ring-blue-500"
-                        {...field}
+                        value={field.value}
+                        onChange={(e) => {
+                          const formattedValue = formatPhone(e.target.value);
+                          field.onChange(formattedValue);
+                        }}
+                        maxLength={15}
                       />
                     </FormControl>
                     <FormMessage className="text-sm text-red-500" />

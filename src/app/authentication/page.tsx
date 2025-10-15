@@ -2,7 +2,6 @@
 
 import { CalendarSearch, Scissors } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
 
 import { Header } from "@/components/header";
@@ -48,16 +47,17 @@ const Authentication = () => {
           </p>
         </div>
 
-        <Link href="/">
-          <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
-            <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-              <CalendarSearch className="h-14 w-14 text-gray-700" />
-            </div>
-            <p className="text-sm font-medium text-gray-700">
-              Ver meus<br></br> Agendamentos
-            </p>
+        <div
+          className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95"
+          onClick={() => handleViewChange("appointments")}
+        >
+          <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
+            <CalendarSearch className="h-14 w-14 text-gray-700" />
           </div>
-        </Link>
+          <p className="text-sm font-medium text-gray-700">
+            Ver meus<br></br> Agendamentos
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -67,16 +67,36 @@ const Authentication = () => {
     <div className="flex max-w-md flex-col items-center gap-6 text-center">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold text-gray-800">Meus Agendamentos</h1>
+        <p className="text-gray-600">Faça login para ver seus agendamentos</p>
       </div>
 
       <div className="w-full rounded-lg bg-white p-6 shadow-lg">
-        <p className="text-gray-500">Nenhum agendamento encontrado.</p>
-        <button
-          className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
-          onClick={() => handleViewChange("home")}
-        >
-          Voltar ao início
-        </button>
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+          <CalendarSearch className="h-8 w-8 text-gray-400" />
+        </div>
+        <p className="mb-2 font-medium text-gray-600">
+          Para ver seus agendamentos
+        </p>
+        <p className="mb-6 text-sm text-gray-500">
+          Você precisa fazer um agendamento primeiro.
+          <br />
+          Ao criar um agendamento, sua conta será criada automaticamente!
+        </p>
+
+        <div className="flex flex-col gap-3">
+          <button
+            className="bg-primary hover:bg-primary/90 rounded-lg px-4 py-2 font-medium text-white transition-colors"
+            onClick={() => handleViewChange("schedule")}
+          >
+            Fazer Agendamento
+          </button>
+          <button
+            className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
+            onClick={() => handleViewChange("home")}
+          >
+            Voltar ao início
+          </button>
+        </div>
       </div>
     </div>
   );
