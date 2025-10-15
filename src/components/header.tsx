@@ -19,29 +19,34 @@ export const Header = () => {
   };
 
   return (
-    <header className="flex items-center justify-between bg-white px-10 py-3 shadow-sm">
+    <header className="flex items-center justify-between border px-10 py-3">
       <div className="flex items-center rounded-md">
         <Link href="/">
-          <h2 className="text-primary cursor-pointer text-lg font-bold transition-colors hover:opacity-80">
+          <h2 className="text-primary cursor-pointer text-2xl font-bold transition-colors hover:opacity-80">
             BarberFy
           </h2>
         </Link>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <Menu className="h-6 w-6" />
+          <Menu className="h-6 w-6 text-gray-700" />
         </DropdownMenuTrigger>
         <DropdownMenuContent className="mr-2">
           <DropdownMenuLabel>BarberFy</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="/authentication" className="cursor-pointer">
+            <Link href="/services" className="cursor-pointer">
               Agendar Serviço
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/" className="cursor-pointer">
               Ver Agendamentos
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/history" className="cursor-pointer">
+              Histórico de Agendamentos
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>

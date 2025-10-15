@@ -1,14 +1,56 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Scissors } from "lucide-react";
+import {
+  CalendarIcon,
+  ChevronLeft,
+  Pencil,
+  Scissors,
+  Trash,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Header } from "@/components/header";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useUserData } from "@/hooks/use-user-data";
+import { cn } from "@/lib/utils";
 
 interface Appointment {
   id: string;
@@ -18,6 +60,17 @@ interface Appointment {
   status: "scheduled" | "completed" | "cancelled";
   createdAt: string;
 }
+
+// Schema de validação para edição de agendamento
+const editAppointmentSchema = z.object({
+  serviceType: z.string().min(1, "Selecione um tipo de serviço"),
+  appointmentDate: z.date({
+    message: "Selecione uma data para o agendamento",
+  }),
+  appointmentTime: z.string().min(1, "Selecione um horário"),
+});
+
+type EditAppointmentFormData = z.infer<typeof editAppointmentSchema>;
 import {
   Accordion,
   AccordionContent,
@@ -25,9 +78,17 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const Authentication = () => {
-  const { user, appointments, loading, error } = useUserData();
+  const { user, appointments, loading, error, refreshData } = useUserData();
+  const [cancellingAppointmentId, setCancellingAppointmentId] = useState<
+    string | null
+  >(null);
+  const [editingAppointmentId, setEditingAppointmentId] = useState<
+    string | null
+  >(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Mostrar toast de erro se houver
   if (error) {
@@ -73,6 +134,343 @@ const Authentication = () => {
       default:
         return "Serviço Desconhecido";
     }
+  };
+
+  // Função para mapear ícones de serviços
+  const getServiceIcon = (serviceType: string) => {
+    const iconStyle = {
+      filter:
+        "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+    };
+
+    switch (serviceType) {
+      case "corte-cabelo":
+        return (
+          <div
+            className="flex h-8 w-8 items-center justify-center"
+            style={iconStyle}
+          >
+            <Image
+              src="/assets/hair-icon.svg"
+              alt="Ícone de Corte de Cabelo"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
+          </div>
+        );
+      case "corte-barba":
+        return (
+          <div
+            className="flex h-8 w-8 items-center justify-center"
+            style={iconStyle}
+          >
+            <Image
+              src="/assets/beard-icon.svg"
+              alt="Ícone de Corte de Barba"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
+          </div>
+        );
+      case "cabelo-barba":
+        return (
+          <div
+            className="flex h-8 w-8 items-center justify-center"
+            style={iconStyle}
+          >
+            <Image
+              src="/assets/hairstyle-icon.svg"
+              alt="Ícone de Cabelo e Barba"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
+          </div>
+        );
+      default:
+        return <Scissors className="h-8 w-8 rotate-270 text-gray-800" />;
+    }
+  };
+
+  // Função para cancelar agendamento
+  const handleCancelAppointment = async (appointmentId: string) => {
+    try {
+      setCancellingAppointmentId(appointmentId);
+
+      const response = await fetch(
+        `/api/appointments/${appointmentId}/cancel`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success("Agendamento cancelado com sucesso!");
+        // Recarregar os dados para atualizar a lista
+        await refreshData();
+      } else {
+        toast.error(result.message || "Erro ao cancelar agendamento.");
+      }
+    } catch (error) {
+      console.error("Erro ao cancelar agendamento:", error);
+      toast.error("Erro ao cancelar agendamento. Tente novamente.");
+    } finally {
+      setCancellingAppointmentId(null);
+    }
+  };
+
+  // Função para editar agendamento
+  const handleEditAppointment = async (
+    appointmentId: string,
+    formData: EditAppointmentFormData,
+  ) => {
+    try {
+      setEditingAppointmentId(appointmentId);
+
+      const response = await fetch(`/api/appointments/${appointmentId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          serviceType: formData.serviceType,
+          appointmentDate: format(formData.appointmentDate, "yyyy-MM-dd"),
+          appointmentTime: formData.appointmentTime,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success("Agendamento atualizado com sucesso!");
+        setEditDialogOpen(false);
+        await refreshData();
+      } else {
+        toast.error(result.message || "Erro ao atualizar agendamento.");
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar agendamento:", error);
+      toast.error("Erro ao atualizar agendamento. Tente novamente.");
+    } finally {
+      setEditingAppointmentId(null);
+    }
+  };
+
+  // Componente de formulário de edição
+  const EditAppointmentForm = ({
+    appointment,
+  }: {
+    appointment: Appointment;
+  }) => {
+    const form = useForm<EditAppointmentFormData>({
+      resolver: zodResolver(editAppointmentSchema),
+      defaultValues: {
+        serviceType: appointment.serviceType,
+        appointmentDate: new Date(appointment.appointmentDate),
+        appointmentTime: appointment.appointmentTime,
+      },
+    });
+
+    const onSubmit = (data: EditAppointmentFormData) => {
+      handleEditAppointment(appointment.id, data);
+    };
+
+    return (
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="serviceType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de Serviço</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo de serviço" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="corte-cabelo">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="flex h-4 w-4 items-center justify-center"
+                          style={{
+                            filter:
+                              "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                          }}
+                        >
+                          <Image
+                            src="/assets/hair-icon.svg"
+                            alt="Ícone de Corte de Cabelo"
+                            width={16}
+                            height={16}
+                            className="object-contain"
+                          />
+                        </div>
+                        Corte de Cabelo
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="corte-barba">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="flex h-4 w-4 items-center justify-center"
+                          style={{
+                            filter:
+                              "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                          }}
+                        >
+                          <Image
+                            src="/assets/beard-icon.svg"
+                            alt="Ícone de Corte de Barba"
+                            width={16}
+                            height={16}
+                            className="object-contain"
+                          />
+                        </div>
+                        Corte de Barba
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="cabelo-barba">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="flex h-4 w-4 items-center justify-center"
+                          style={{
+                            filter:
+                              "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                          }}
+                        >
+                          <Image
+                            src="/assets/hairstyle-icon.svg"
+                            alt="Ícone de Cabelo e Barba"
+                            width={16}
+                            height={16}
+                            className="object-contain"
+                          />
+                        </div>
+                        Cabelo e Barba
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="appointmentDate"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Data do Agendamento</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "dd/MM/yyyy", { locale: ptBR })
+                        ) : (
+                          <span>Selecione uma data</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date < new Date() || date < new Date("1900-01-01")
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="appointmentTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Horário</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um horário" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="09:00">09:00</SelectItem>
+                    <SelectItem value="09:30">09:30</SelectItem>
+                    <SelectItem value="10:00">10:00</SelectItem>
+                    <SelectItem value="10:30">10:30</SelectItem>
+                    <SelectItem value="11:00">11:00</SelectItem>
+                    <SelectItem value="11:30">11:30</SelectItem>
+                    <SelectItem value="14:00">14:00</SelectItem>
+                    <SelectItem value="14:30">14:30</SelectItem>
+                    <SelectItem value="15:00">15:00</SelectItem>
+                    <SelectItem value="15:30">15:30</SelectItem>
+                    <SelectItem value="16:00">16:00</SelectItem>
+                    <SelectItem value="16:30">16:30</SelectItem>
+                    <SelectItem value="17:00">17:00</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex items-center justify-end gap-2 pt-4">
+            <AlertDialogCancel onClick={() => setEditDialogOpen(false)}>
+              Cancelar
+            </AlertDialogCancel>
+            <Button
+              type="submit"
+              disabled={editingAppointmentId === appointment.id}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {editingAppointmentId === appointment.id ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Salvar Alterações
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    );
   };
 
   if (loading) {
@@ -124,63 +522,201 @@ const Authentication = () => {
           </p>
 
           <Accordion type="single" collapsible className="w-full">
-            {appointments.length === 0 ? (
+            {appointments.filter(
+              (appointment) => appointment.status === "scheduled",
+            ).length === 0 ? (
               <div className="py-8 text-center">
                 <p className="text-muted-foreground text-sm">
-                  Você ainda não tem agendamentos.
+                  Você não tem agendamentos confirmados no momento.
                 </p>
-                <Link
-                  href="/authentication"
-                  className="text-primary mt-2 inline-block text-sm hover:underline"
-                >
-                  Agendar primeiro corte
-                </Link>
+                <div className="mt-4 flex flex-col gap-2">
+                  <Link
+                    href="/services"
+                    className="text-primary text-sm hover:underline"
+                  >
+                    Fazer novo agendamento
+                  </Link>
+                  <p className="text-muted-foreground text-sm">ou</p>
+                  <Link
+                    href="/history"
+                    className="text-primary text-sm hover:underline"
+                  >
+                    Ver histórico completo
+                  </Link>
+                </div>
               </div>
             ) : (
-              appointments.map((appointment: Appointment, index: number) => (
-                <AccordionItem
-                  key={appointment.id}
-                  value={`appointment-${index}`}
-                  className="mb-4 overflow-hidden rounded-lg border-none bg-white shadow-md"
-                >
-                  <AccordionTrigger className="px-4 py-3 hover:no-underline [&[data-state=open]>svg]:rotate-180">
-                    <div className="flex items-center">
-                      <Scissors className="mr-4 h-8 w-8 rotate-270 text-gray-800" />
-                      <div className="flex flex-col items-start">
-                        <p className="text-muted-foreground text-sm font-bold">
+              appointments
+                .filter(
+                  (appointment: Appointment) =>
+                    appointment.status === "scheduled",
+                )
+                .map((appointment: Appointment, index: number) => (
+                  <AccordionItem
+                    key={appointment.id}
+                    value={`appointment-${index}`}
+                    className="mb-4 overflow-hidden rounded-lg border-none bg-white shadow-md"
+                  >
+                    <AccordionTrigger className="px-4 py-3 hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                      <div className="flex items-center">
+                        <div className="mr-4">
+                          {getServiceIcon(
+                            appointment.serviceType || "corte-cabelo",
+                          )}
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <p className="text-muted-foreground text-sm font-bold">
+                            {getServiceName(
+                              appointment.serviceType || "corte-cabelo",
+                            )}{" "}
+                            - {formatDate(appointment.appointmentDate)}
+                          </p>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-3">
+                      <div className="flex flex-col gap-2 pl-12">
+                        <p className="text-muted-foreground text-sm font-medium">
+                          <strong>Horário do serviço:</strong>{" "}
+                          {appointment.appointmentTime}
+                        </p>
+                        <p className="text-muted-foreground text-sm font-medium">
+                          <strong>Barbeiro:</strong> BarberFy Team
+                        </p>
+                        <p className="text-muted-foreground text-sm font-medium">
+                          <strong>Serviço:</strong>{" "}
                           {getServiceName(
                             appointment.serviceType || "corte-cabelo",
-                          )}{" "}
-                          - {formatDate(appointment.appointmentDate)}
+                          )}
                         </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-muted-foreground text-sm font-medium">
+                            <strong>Status:</strong>
+                          </p>
+                          {getStatusBadge(appointment.status)}
+                        </div>
+                        <div className="mt-2 mb-1 flex gap-2">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                className="shadow-md"
+                                disabled={
+                                  appointment.status === "cancelled" ||
+                                  appointment.status === "completed"
+                                }
+                                variant={
+                                  appointment.status === "cancelled"
+                                    ? "secondary"
+                                    : "default"
+                                }
+                              >
+                                <Trash className="h-5 w-5" />
+                                <p>
+                                  {appointment.status === "cancelled"
+                                    ? "Cancelado"
+                                    : "Cancelar"}
+                                </p>
+                              </Button>
+                            </AlertDialogTrigger>
+                            {appointment.status !== "cancelled" &&
+                              appointment.status !== "completed" && (
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Cancelar Agendamento
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Você tem certeza que deseja cancelar este
+                                      agendamento? Esta ação não pode ser
+                                      desfeita e irá cancelar permanentemente
+                                      seu agendamento de{" "}
+                                      <strong>
+                                        {getServiceName(
+                                          appointment.serviceType ||
+                                            "corte-cabelo",
+                                        )}
+                                      </strong>{" "}
+                                      para o dia{" "}
+                                      <strong>
+                                        {formatDate(
+                                          appointment.appointmentDate,
+                                        )}
+                                      </strong>{" "}
+                                      às{" "}
+                                      <strong>
+                                        {appointment.appointmentTime}
+                                      </strong>
+                                      .
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <div className="flex w-full items-center justify-center gap-4">
+                                    <AlertDialogCancel>
+                                      <ChevronLeft />
+                                      Manter
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() =>
+                                        handleCancelAppointment(appointment.id)
+                                      }
+                                      disabled={
+                                        cancellingAppointmentId ===
+                                        appointment.id
+                                      }
+                                      className="bg-primary hover:bg-primary/90 text-white disabled:opacity-50"
+                                    >
+                                      {cancellingAppointmentId ===
+                                      appointment.id ? (
+                                        <>
+                                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                          Cancelando...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Trash />
+                                          Cancelar
+                                        </>
+                                      )}
+                                    </AlertDialogAction>
+                                  </div>
+                                </AlertDialogContent>
+                              )}
+                          </AlertDialog>
+                          <AlertDialog
+                            open={editDialogOpen}
+                            onOpenChange={setEditDialogOpen}
+                          >
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="shadow-md"
+                                onClick={() => setEditDialogOpen(true)}
+                                disabled={
+                                  appointment.status === "cancelled" ||
+                                  appointment.status === "completed"
+                                }
+                              >
+                                <Pencil />
+                                Editar
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="max-w-md">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Editar Agendamento
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Altere as informações do seu agendamento
+                                  abaixo.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <EditAppointmentForm appointment={appointment} />
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-3">
-                    <div className="flex flex-col gap-2 pl-12">
-                      <p className="text-muted-foreground text-sm font-medium">
-                        <strong>Horário do serviço:</strong>{" "}
-                        {appointment.appointmentTime}
-                      </p>
-                      <p className="text-muted-foreground text-sm font-medium">
-                        <strong>Barbeiro:</strong> BarberFy Team
-                      </p>
-                      <p className="text-muted-foreground text-sm font-medium">
-                        <strong>Serviço:</strong>{" "}
-                        {getServiceName(
-                          appointment.serviceType || "corte-cabelo",
-                        )}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <p className="text-muted-foreground text-sm font-medium">
-                          <strong>Status:</strong>
-                        </p>
-                        {getStatusBadge(appointment.status)}
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))
+                    </AccordionContent>
+                  </AccordionItem>
+                ))
             )}
           </Accordion>
         </div>
