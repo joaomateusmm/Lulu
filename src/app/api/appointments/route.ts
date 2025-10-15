@@ -9,6 +9,7 @@ import { cleanPhoneNumber, generateUserId } from "@/lib/user-utils";
 const appointmentSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   phone: z.string().min(10, "Número de telefone inválido"),
+  serviceType: z.string().min(1, "Tipo de serviço é obrigatório"),
   appointmentDate: z.string().transform((str) => new Date(str)),
   appointmentTime: z.string().min(1, "Hora é obrigatória"),
 });
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
       .insert(appointmentTable)
       .values({
         userId: userId,
+        serviceType: validatedData.serviceType,
         appointmentDate: validatedData.appointmentDate,
         appointmentTime: validatedData.appointmentTime,
         status: "scheduled",

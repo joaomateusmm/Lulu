@@ -14,6 +14,7 @@ interface Appointment {
   id: string;
   appointmentDate: string;
   appointmentTime: string;
+  serviceType: string;
   status: "scheduled" | "completed" | "cancelled";
   createdAt: string;
 }
@@ -58,6 +59,20 @@ const Authentication = () => {
     const firstName = nameParts[0];
     const secondNameInitial = nameParts[1].charAt(0).toUpperCase();
     return `${firstName} ${secondNameInitial}.`;
+  };
+
+  // Função para mapear tipos de serviço
+  const getServiceName = (serviceType: string) => {
+    switch (serviceType) {
+      case "corte-cabelo":
+        return "Corte de Cabelo";
+      case "corte-barba":
+        return "Corte de Barba";
+      case "cabelo-barba":
+        return "Cabelo e Barba";
+      default:
+        return "Serviço Desconhecido";
+    }
   };
 
   if (loading) {
@@ -133,8 +148,10 @@ const Authentication = () => {
                       <Scissors className="mr-4 h-8 w-8 rotate-270 text-gray-800" />
                       <div className="flex flex-col items-start">
                         <p className="text-muted-foreground text-sm font-bold">
-                          Corte de Cabelo -{" "}
-                          {formatDate(appointment.appointmentDate)}
+                          {getServiceName(
+                            appointment.serviceType || "corte-cabelo",
+                          )}{" "}
+                          - {formatDate(appointment.appointmentDate)}
                         </p>
                       </div>
                     </div>
@@ -142,14 +159,17 @@ const Authentication = () => {
                   <AccordionContent className="px-4 pb-3">
                     <div className="flex flex-col gap-2 pl-12">
                       <p className="text-muted-foreground text-sm font-medium">
-                        <strong>Horário do corte:</strong>{" "}
+                        <strong>Horário do serviço:</strong>{" "}
                         {appointment.appointmentTime}
                       </p>
                       <p className="text-muted-foreground text-sm font-medium">
                         <strong>Barbeiro:</strong> BarberFy Team
                       </p>
                       <p className="text-muted-foreground text-sm font-medium">
-                        <strong>Serviço:</strong> Corte de Cabelo
+                        <strong>Serviço:</strong>{" "}
+                        {getServiceName(
+                          appointment.serviceType || "corte-cabelo",
+                        )}
                       </p>
                       <div className="flex items-center gap-2">
                         <p className="text-muted-foreground text-sm font-medium">
@@ -172,7 +192,7 @@ const Authentication = () => {
         <div className="grid grid-cols-2 gap-4">
           {/* Serviço 1 - Corte de Cabelo (Centralizado) */}
           <div className="col-span-2 flex justify-center">
-            <Link href="/authentication">
+            <Link href="/services?service=corte-cabelo">
               <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
                 <div className="flex h-28 w-28 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
                   <div
@@ -199,7 +219,7 @@ const Authentication = () => {
           </div>
 
           {/* Serviço 2 - Barba */}
-          <Link href="/authentication">
+          <Link href="/services?service=corte-barba">
             <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
               <div className="flex h-28 w-28 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
                 <div
@@ -225,7 +245,7 @@ const Authentication = () => {
           </Link>
 
           {/* Serviço 3 - Barba + Cabelo */}
-          <Link href="/authentication">
+          <Link href="/services?service=cabelo-barba">
             <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
               <div className="flex h-28 w-28 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
                 <div

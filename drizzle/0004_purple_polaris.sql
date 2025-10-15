@@ -1,0 +1,1 @@
+ALTER TABLE "appointment" ADD COLUMN "service_type" text NOT NULL;

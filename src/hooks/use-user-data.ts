@@ -10,6 +10,7 @@ interface Appointment {
   id: string;
   appointmentDate: string;
   appointmentTime: string;
+  serviceType: string;
   status: "scheduled" | "completed" | "cancelled";
   createdAt: string;
 }

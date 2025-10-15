@@ -68,6 +68,7 @@ export const appointmentTable = pgTable("appointment", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  serviceType: text("service_type").notNull(), // "corte-cabelo", "corte-barba", "cabelo-barba"
   appointmentDate: timestamp("appointment_date").notNull(),
   appointmentTime: text("appointment_time").notNull(), // Formato: "14:30"
   status: text("status").notNull().default("scheduled"), // scheduled, completed, cancelled

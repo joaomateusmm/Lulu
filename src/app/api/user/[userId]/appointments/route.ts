@@ -27,6 +27,7 @@ export async function GET(
         id: appointmentTable.id,
         appointmentDate: appointmentTable.appointmentDate,
         appointmentTime: appointmentTable.appointmentTime,
+        serviceType: appointmentTable.serviceType,
         status: appointmentTable.status,
         createdAt: appointmentTable.createdAt,
       })

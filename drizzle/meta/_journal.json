@@ -29,6 +29,13 @@
       "when": 1760459492244,
       "tag": "0003_unusual_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1760493682434,
+      "tag": "0004_purple_polaris",
+      "breakpoints": true
     }
   ]
 }
