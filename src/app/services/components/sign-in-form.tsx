@@ -297,7 +297,7 @@ const SignInForm = ({
   }
 
   return (
-    <div className="">
+    <div className="w-[80vw] md:w-80">
       <div className="mb-4 text-center">
         {showBackButton && (
           <button
@@ -307,12 +307,12 @@ const SignInForm = ({
             ← Voltar
           </button>
         )}
-        <h1 className="mt-4 -mb-3 text-2xl font-bold text-gray-900">
+        <h1 className="my-4 text-2xl font-bold text-gray-900">
           Agendar Serviço
         </h1>
       </div>
 
-      <div className="w-[80vw] p-6">
+      <div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Campos iniciais: Nome, Telefone e Serviço */}

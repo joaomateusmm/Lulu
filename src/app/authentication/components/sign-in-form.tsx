@@ -246,7 +246,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
     }
   }
   return (
-    <div className="">
+    <div className="w-[80vw] md:w-80">
       <div className="mb-4 text-center">
         {showBackButton && (
           <button
@@ -256,12 +256,12 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
             ← Voltar
           </button>
         )}
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="mb-8 text-2xl font-bold text-gray-900">
           Corte com a BarberFy
         </h1>
       </div>
 
-      <div className="w-[80vw] p-6">
+      <div className="">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Campos iniciais: Nome e Telefone */}
