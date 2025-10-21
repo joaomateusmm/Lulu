@@ -1,5 +1,7 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import { LayoutList, Scissors, Shield, UsersRound } from "lucide-react";
+import Image from "next/image";
 
+import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -7,6 +9,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -15,38 +18,49 @@ import {
 // Menu items.
 const items = [
   {
-    title: "Home",
+    title: "Agendamentos",
     url: "#",
-    icon: Home,
+    icon: LayoutList,
   },
   {
-    title: "Inbox",
+    title: "Serviços",
     url: "#",
-    icon: Inbox,
+    icon: Scissors,
   },
   {
-    title: "Calendar",
+    title: "Funcionários",
     url: "#",
-    icon: Calendar,
+    icon: UsersRound,
   },
+];
+
+const items2 = [
   {
-    title: "Search",
+    title: "Adiministradores",
     url: "#",
-    icon: Search,
-  },
-  {
-    title: "Configurações",
-    url: "#",
-    icon: Settings,
+    icon: Shield,
   },
 ];
 
 export function AppSidebar() {
   return (
     <Sidebar>
+      <SidebarHeader className="border-b p-4">
+        <div className="flex items-center gap-3">
+          <div className="">
+            <Image
+              src="/assets/header-logo.svg"
+              alt="BarberFy Logo"
+              width={200}
+              height={200}
+              className="rounded-lg"
+            />
+          </div>
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Páginas e Ferramentas</SidebarGroupLabel>
+          <SidebarGroupLabel>Barbearia</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -61,11 +75,27 @@ export function AppSidebar() {
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
+          <SidebarGroupLabel>Segurança</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {items2.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <Separator />
       <SidebarFooter>
-        <div className="text-muted-foreground h-13 text-xs">
-          &copy; 2024 - Modelo Login e Logout
+        <div className="text-muted-foreground mt-4 h-13 text-center text-xs">
+          &copy; © 2025 BarberFy - Todos os direitos reservados.
         </div>
       </SidebarFooter>
     </Sidebar>

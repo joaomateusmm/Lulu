@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   CalendarIcon,
+  CalendarPlus,
   ChevronLeft,
   Clock,
   Pencil,
@@ -992,6 +993,67 @@ const Authentication = () => {
             © 2025 BarberFy - Todos os direitos reservados.
           </p>
         </div>
+        <Link
+          href="/services"
+          aria-label="Agendar novo horário"
+          className="fixed right-4 bottom-4 z-50"
+        >
+          {/*
+            Floating button: using onMouseDown to create a ripple effect.
+            The ripple is created dynamically and removed after animation.
+          */}
+          <span
+            className="group relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-violet-700 to-violet-500 text-white shadow-lg ring-0 transition-transform duration-200 hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:outline-none active:scale-95"
+            onMouseDown={(e) => {
+              const target = e.currentTarget as HTMLSpanElement;
+              // create ripple
+              const rect = target.getBoundingClientRect();
+              const ripple = document.createElement("span");
+              const size = Math.max(rect.width, rect.height) * 1.2;
+              const x = e.clientX - rect.left - size / 2;
+              const y = e.clientY - rect.top - size / 2;
+
+              ripple.style.position = "absolute";
+              ripple.style.left = `${x}px`;
+              ripple.style.top = `${y}px`;
+              ripple.style.width = `${size}px`;
+              ripple.style.height = `${size}px`;
+              ripple.style.borderRadius = "50%";
+              ripple.style.background = "rgba(255,255,255,0.18)";
+              ripple.style.transform = "scale(0)";
+              ripple.style.pointerEvents = "none";
+              ripple.style.transition =
+                "transform 500ms cubic-bezier(.2,.8,.2,1), opacity 500ms";
+              ripple.style.opacity = "1";
+
+              target.appendChild(ripple);
+
+              // trigger growth
+              requestAnimationFrame(() => {
+                ripple.style.transform = "scale(1)";
+                ripple.style.opacity = "0";
+              });
+
+              // remove after animation
+              setTimeout(() => {
+                ripple.remove();
+              }, 550);
+            }}
+          >
+            <CalendarPlus className="h-7 w-7 text-white" />
+
+            {/* Tooltip */}
+            <span className="pointer-events-none absolute bottom-20 left-1/2 hidden -translate-x-1/2 transform rounded-md bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-all duration-150 group-hover:block group-hover:opacity-100">
+              Novo agendamento
+            </span>
+
+            {/* Decorative focus ring for keyboard users */}
+            <span
+              className="group-focus-within:ring-primary/30 absolute inset-0 rounded-full ring-0 transition-opacity duration-200 group-focus-within:ring-4"
+              aria-hidden="true"
+            />
+          </span>
+        </Link>
       </main>
     </div>
   );

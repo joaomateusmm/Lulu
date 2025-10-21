@@ -19,7 +19,58 @@ export async function PATCH(
     const { appointmentId } = await params;
     const body = await request.json();
 
-    // Validação básica dos dados
+    // Verificar se o agendamento existe primeiro
+    const existingAppointment = await db
+      .select()
+      .from(appointmentTable)
+      .where(eq(appointmentTable.id, appointmentId))
+      .limit(1);
+
+    if (existingAppointment.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Agendamento não encontrado",
+        },
+        { status: 404 },
+      );
+    }
+
+    // Se apenas status está sendo atualizado (admin action)
+    if (
+      body.status &&
+      !body.serviceType &&
+      !body.appointmentDate &&
+      !body.appointmentTime
+    ) {
+      const validStatuses = ["scheduled", "completed", "cancelled"];
+      if (!validStatuses.includes(body.status)) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Status inválido",
+          },
+          { status: 400 },
+        );
+      }
+
+      // Atualizar apenas o status
+      const [updatedAppointment] = await db
+        .update(appointmentTable)
+        .set({
+          status: body.status,
+        })
+        .where(eq(appointmentTable.id, appointmentId))
+        .returning();
+
+      return NextResponse.json({
+        success: true,
+        message: "Status atualizado com sucesso",
+        appointment: updatedAppointment,
+      });
+    }
+
+    // Validação básica dos dados para edição completa
     const { serviceType, appointmentDate, appointmentTime } = body;
 
     if (!serviceType || !appointmentDate || !appointmentTime) {
@@ -41,23 +92,6 @@ export async function PATCH(
           message: "Tipo de serviço inválido",
         },
         { status: 400 },
-      );
-    }
-
-    // Verificar se o agendamento existe
-    const existingAppointment = await db
-      .select()
-      .from(appointmentTable)
-      .where(eq(appointmentTable.id, appointmentId))
-      .limit(1);
-
-    if (existingAppointment.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Agendamento não encontrado",
-        },
-        { status: 404 },
       );
     }
 
@@ -154,6 +188,52 @@ export async function PATCH(
     });
   } catch (error) {
     console.error("Erro ao atualizar agendamento:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Erro interno do servidor",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+// DELETE - Excluir agendamento
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ appointmentId: string }> },
+) {
+  try {
+    const { appointmentId } = await params;
+
+    // Verificar se o agendamento existe
+    const existingAppointment = await db
+      .select()
+      .from(appointmentTable)
+      .where(eq(appointmentTable.id, appointmentId))
+      .limit(1);
+
+    if (existingAppointment.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Agendamento não encontrado",
+        },
+        { status: 404 },
+      );
+    }
+
+    // Excluir o agendamento
+    await db
+      .delete(appointmentTable)
+      .where(eq(appointmentTable.id, appointmentId));
+
+    return NextResponse.json({
+      success: true,
+      message: "Agendamento excluído com sucesso",
+    });
+  } catch (error) {
+    console.error("Erro ao excluir agendamento:", error);
     return NextResponse.json(
       {
         success: false,
