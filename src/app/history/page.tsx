@@ -65,12 +65,18 @@ const HistoryPage = () => {
   // Função para mapear tipos de serviço
   const getServiceName = (serviceType: string) => {
     switch (serviceType) {
-      case "corte-cabelo":
-        return "Corte de Cabelo";
-      case "corte-barba":
-        return "Corte de Barba";
-      case "cabelo-barba":
-        return "Cabelo e Barba";
+      case "manicure":
+        return "Manicure";
+      case "pedicure":
+        return "Pedicure";
+      case "cilios":
+        return "Cílios";
+      case "sobrancelhas":
+        return "Sobrancelhas";
+      case "micropigmentacao":
+        return "Micropigmentação";
+      case "piercing":
+        return "Piercing";
       default:
         return "Serviço Desconhecido";
     }
@@ -160,7 +166,7 @@ const HistoryPage = () => {
                           <div className="flex flex-col items-start">
                             <p className="text-muted-foreground text-sm font-bold">
                               {getServiceName(
-                                appointment.serviceType || "corte-cabelo",
+                                appointment.serviceType || "manicure",
                               )}{" "}
                               - {formatDate(appointment.appointmentDate)}
                             </p>
@@ -179,7 +185,7 @@ const HistoryPage = () => {
                           {formatDate(appointment.appointmentDate)}
                         </p>
                         <p className="text-muted-foreground text-sm font-medium">
-                          <strong>Barbeiro:</strong> BarberFy Team
+                          <strong>Barbeiro:</strong> Lulu Nail Team
                         </p>
                         <p className="text-muted-foreground text-sm font-medium">
                           <strong>Serviço:</strong>{" "}
@@ -213,7 +219,7 @@ const HistoryPage = () => {
         {/* Rodapé */}
         <div className="mt-8 text-center">
           <p className="text-muted-foreground text-xs">
-            © 2025 BarberFy - Todos os direitos reservados.
+            © 2025 Lulu Nail - Todos os direitos reservados.
           </p>
         </div>
       </main>

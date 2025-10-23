@@ -77,12 +77,18 @@ const formatDate = (dateString: string) => {
 // Função para mapear tipos de serviço
 const getServiceName = (serviceType: string) => {
   switch (serviceType) {
-    case "corte-cabelo":
-      return "Corte de Cabelo";
-    case "corte-barba":
-      return "Corte de Barba";
-    case "cabelo-barba":
-      return "Cabelo e Barba";
+    case "manicure":
+      return "Manicure";
+    case "pedicure":
+      return "Pedicure";
+    case "cilios":
+      return "Cílios";
+    case "sobrancelhas":
+      return "Sobrancelhas";
+    case "micropigmentacao":
+      return "Micropigmentação";
+    case "piercing":
+      return "Piercing";
     default:
       return "Desconhecido";
   }
@@ -91,12 +97,18 @@ const getServiceName = (serviceType: string) => {
 // Função para obter valor do serviço
 const getServicePrice = (serviceType: string) => {
   switch (serviceType) {
-    case "corte-cabelo":
-      return "R$ 35,00";
-    case "corte-barba":
-      return "R$ 25,00";
-    case "cabelo-barba":
+    case "manicure":
+      return "R$ 40,00";
+    case "pedicure":
       return "R$ 50,00";
+    case "cilios":
+      return "R$ 80,00";
+    case "sobrancelhas":
+      return "R$ 35,00";
+    case "micropigmentacao":
+      return "R$ 150,00";
+    case "piercing":
+      return "R$ 60,00";
     default:
       return "R$ 0,00";
   }
@@ -540,7 +552,7 @@ const AdminPage = () => {
                 {/* Breadcrumb */}
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="cursor-pointer hover:text-gray-900">
-                    Barberfy
+                    Lulu Nail
                   </span>
                   <span>›</span>
                   <span className="cursor-pointer hover:text-gray-900">
@@ -667,7 +679,7 @@ const AdminPage = () => {
                             <div className="mb-4 flex justify-center">
                               <Image
                                 src="/assets/illustration.svg"
-                                alt="BarberFy Logo"
+                                alt="Lulu Nail Logo"
                                 width={300}
                                 height={300}
                                 className="my-3 rounded-lg opacity-80"

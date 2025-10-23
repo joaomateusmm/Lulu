@@ -50,7 +50,7 @@ export function AppSidebar() {
           <div className="">
             <Image
               src="/assets/header-logo.svg"
-              alt="BarberFy Logo"
+              alt="Lulu Nail Logo"
               width={200}
               height={200}
               className="rounded-lg"
@@ -95,7 +95,7 @@ export function AppSidebar() {
       <Separator />
       <SidebarFooter>
         <div className="text-muted-foreground mt-4 h-13 text-center text-xs">
-          &copy; © 2025 BarberFy - Todos os direitos reservados.
+          &copy; © 2025 Lulu Nail - Todos os direitos reservados.
         </div>
       </SidebarFooter>
     </Sidebar>

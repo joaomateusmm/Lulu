@@ -55,9 +55,12 @@ interface SignInFormProps {
 }
 
 const serviceOptions = [
-  { value: "corte-cabelo", label: "Corte de Cabelo" },
-  { value: "corte-barba", label: "Corte de Barba" },
-  { value: "cabelo-barba", label: "Cabelo e Barba" },
+  { value: "manicure", label: "Manicure" },
+  { value: "pedicure", label: "Pedicure" },
+  { value: "cilios", label: "Cílios" },
+  { value: "sobrancelhas", label: "Sobrancelhas" },
+  { value: "micropigmentacao", label: "Micropigmentação" },
+  { value: "piercing", label: "Piercing" },
 ];
 
 const SignInForm = ({
@@ -260,7 +263,7 @@ const SignInForm = ({
 
         // Salvar o userId no localStorage para uso posterior
         if (result.userId) {
-          localStorage.setItem("barberfy_user_id", result.userId);
+          localStorage.setItem("Lulu Nail_user_id", result.userId);
         }
 
         // Redirecionar para a página principal após 1.5 segundos

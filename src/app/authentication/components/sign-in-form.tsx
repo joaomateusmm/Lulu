@@ -32,6 +32,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
@@ -40,6 +47,7 @@ const formSchema = z.object({
     .string()
     .min(15, "Telefone deve ter o formato (DD) 9XXXX-XXXX")
     .max(15, "Telefone inválido"),
+  service: z.string().optional(),
   date: z.date().optional(),
   time: z.string().optional(),
 });
@@ -122,6 +130,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
     defaultValues: {
       name: "",
       phone: "",
+      service: "",
       date: undefined,
       time: "",
     },
@@ -137,6 +146,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
   const isAllFieldsComplete =
     isFirstStepComplete &&
     showDateTimeFields &&
+    watchedValues.service &&
     watchedValues.date &&
     watchedValues.time;
 
@@ -157,6 +167,11 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
   }
 
   async function onSchedule(values: FormValues) {
+    if (!values.service) {
+      form.setError("service", { message: "Serviço é obrigatório" });
+      return;
+    }
+
     if (!values.date) {
       form.setError("date", { message: "Data é obrigatória" });
       return;
@@ -207,7 +222,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
         body: JSON.stringify({
           name: values.name,
           phone: values.phone.replace(/\D/g, ""), // Envia apenas números
-          serviceType: "corte-cabelo", // Valor padrão para a página authentication
+          serviceType: values.service, // Serviço selecionado pelo cliente
           appointmentDate: values.date.toISOString(),
           appointmentTime: values.time,
         }),
@@ -220,7 +235,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
 
         // Salvar o userId no localStorage para uso posterior
         if (result.userId) {
-          localStorage.setItem("barberfy_user_id", result.userId);
+          localStorage.setItem("Lulu Nail_user_id", result.userId);
         }
 
         // Redirecionar para a página principal após 1.5 segundos
@@ -257,7 +272,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
           </button>
         )}
         <h1 className="mb-8 text-2xl font-bold text-gray-900">
-          Corte com a BarberFy
+          Agende com a Lulu
         </h1>
       </div>
 
@@ -313,17 +328,51 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
               />
             </div>
 
-            {/* Campos de Data e Hora - aparecem após clicar em Continuar */}
+            {/* Campos de Serviço, Data e Hora - aparecem após clicar em Continuar */}
             {showDateTimeFields && (
               <div className="animate-in fade-in slide-in-from-bottom-2 space-y-4 duration-500 ease-out">
                 <div className="flex flex-col gap-4">
+                  <FormField
+                    control={form.control}
+                    name="service"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Serviço
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-11 w-full border-gray-300 bg-gray-50 text-sm shadow-md focus:border-blue-500 focus:ring-blue-500">
+                              <SelectValue placeholder="Selecione um serviço" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="manicure">Manicure</SelectItem>
+                            <SelectItem value="pedicure">Pedicure</SelectItem>
+                            <SelectItem value="cilios">Cílios</SelectItem>
+                            <SelectItem value="sobrancelhas">
+                              Sobrancelhas
+                            </SelectItem>
+                            <SelectItem value="micropigmentacao">
+                              Micropigmentação
+                            </SelectItem>
+                            <SelectItem value="piercing">Piercing</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage className="text-sm text-red-500" />
+                      </FormItem>
+                    )}
+                  />
                   <FormField
                     control={form.control}
                     name="date"
                     render={({ field }) => (
                       <FormItem className="flex-1">
                         <FormLabel className="text-sm font-medium text-gray-700">
-                          Data do corte
+                          Data do agendamento
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
@@ -373,7 +422,7 @@ const SignInForm = ({ onBack, showBackButton = false }: SignInFormProps) => {
                     render={({ field }) => (
                       <FormItem className="flex-1">
                         <FormLabel className="text-sm font-medium text-gray-700">
-                          Hora do corte
+                          Hora do agendamento
                         </FormLabel>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

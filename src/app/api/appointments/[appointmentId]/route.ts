@@ -84,7 +84,14 @@ export async function PATCH(
     }
 
     // Validar tipos de serviço aceitos
-    const validServiceTypes = ["corte-cabelo", "corte-barba", "cabelo-barba"];
+    const validServiceTypes = [
+      "manicure",
+      "pedicure",
+      "cilios",
+      "sobrancelhas",
+      "micropigmentacao",
+      "piercing",
+    ];
     if (!validServiceTypes.includes(serviceType)) {
       return NextResponse.json(
         {

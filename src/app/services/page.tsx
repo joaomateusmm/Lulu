@@ -23,13 +23,13 @@ const Services = () => {
 
       {/* Logo fixa */}
       <div className="flex justify-center">
-        <div className="mt-5 flex h-35 w-35 items-center justify-center rounded-full bg-white shadow-lg">
+        <div className="mt-5 flex h-35 w-35 items-center justify-center rounded-full bg-white shadow-lg duration-300 hover:scale-105 hover:shadow-xl">
           <Image
-            src="/logo.png"
-            alt="Logo BarberFy"
-            width={120}
-            height={120}
-            className="rounded-full object-cover"
+            src="/logo.jpg"
+            alt="Logo Lulu Nail"
+            width={300}
+            height={300}
+            className="rounded-full"
           />
         </div>
       </div>
@@ -44,7 +44,7 @@ const Services = () => {
       {/* Rodapé fixo na parte inferior */}
       <footer className="flex justify-center py-4">
         <p className="text-sm text-gray-500">
-          © 2025 BarberFy - Todos os direitos reservados
+          © 2025 Lulu Nail - Todos os direitos reservados
         </p>
       </footer>
     </div>

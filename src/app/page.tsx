@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import type { EmblaCarouselType } from "embla-carousel";
 import {
   CalendarIcon,
   CalendarPlus,
@@ -33,6 +34,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,6 +105,33 @@ const Authentication = () => {
     string | null
   >(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [carouselApi, setCarouselApi] = useState<EmblaCarouselType>();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+
+  // Atualizar slide atual e número de páginas quando a API do carrossel mudar
+  useEffect(() => {
+    if (!carouselApi) return;
+
+    const onSelect = () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap());
+    };
+
+    const onInit = () => {
+      setScrollSnaps(carouselApi.scrollSnapList());
+    };
+
+    carouselApi.on("select", onSelect);
+    carouselApi.on("init", onInit);
+
+    onSelect(); // Definir o slide inicial
+    onInit(); // Definir snapshots iniciais
+
+    return () => {
+      carouselApi.off("select", onSelect);
+      carouselApi.off("init", onInit);
+    };
+  }, [carouselApi]);
 
   // Mostrar toast de erro se houver
   if (error) {
@@ -135,12 +168,18 @@ const Authentication = () => {
   // Função para mapear tipos de serviço
   const getServiceName = (serviceType: string) => {
     switch (serviceType) {
-      case "corte-cabelo":
-        return "Corte de Cabelo";
-      case "corte-barba":
-        return "Corte de Barba";
-      case "cabelo-barba":
-        return "Cabelo e Barba";
+      case "manicure":
+        return "Manicure";
+      case "pedicure":
+        return "Pedicure";
+      case "cilios":
+        return "Cílios";
+      case "sobrancelhas":
+        return "Sobrancelhas";
+      case "micropigmentacao":
+        return "Micropigmentação";
+      case "piercing":
+        return "Piercing";
       default:
         return "Serviço Desconhecido";
     }
@@ -154,45 +193,90 @@ const Authentication = () => {
     };
 
     switch (serviceType) {
-      case "corte-cabelo":
+      case "manicure":
         return (
           <div
             className="flex h-8 w-8 items-center justify-center"
             style={iconStyle}
           >
             <Image
-              src="/assets/hair-icon.svg"
-              alt="Ícone de Corte de Cabelo"
+              src="/assets/manicure-icon.png"
+              alt="Ícone de Manicure"
               width={28}
               height={28}
               className="object-contain"
             />
           </div>
         );
-      case "corte-barba":
+      case "pedicure":
         return (
           <div
             className="flex h-8 w-8 items-center justify-center"
             style={iconStyle}
           >
             <Image
-              src="/assets/beard-icon.svg"
-              alt="Ícone de Corte de Barba"
+              src="/assets/pedicure-icon.png"
+              alt="Ícone de Pedicure"
               width={28}
               height={28}
               className="object-contain"
             />
           </div>
         );
-      case "cabelo-barba":
+      case "cilios":
         return (
           <div
             className="flex h-8 w-8 items-center justify-center"
             style={iconStyle}
           >
             <Image
-              src="/assets/hairstyle-icon.svg"
-              alt="Ícone de Cabelo e Barba"
+              src="/assets/eyelash-icon.png"
+              alt="Ícone de Cílios"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
+          </div>
+        );
+      case "sobrancelhas":
+        return (
+          <div
+            className="flex h-8 w-8 items-center justify-center"
+            style={iconStyle}
+          >
+            <Image
+              src="/assets/eyebrow-icon.png"
+              alt="Ícone de Sobrancelhas"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
+          </div>
+        );
+      case "micropigmentacao":
+        return (
+          <div
+            className="flex h-8 w-8 items-center justify-center"
+            style={iconStyle}
+          >
+            <Image
+              src="/assets/micropigmentation-icon.png"
+              alt="Ícone de Micropigmentação"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
+          </div>
+        );
+      case "piercing":
+        return (
+          <div
+            className="flex h-8 w-8 items-center justify-center"
+            style={iconStyle}
+          >
+            <Image
+              src="/assets/piercing-icon.png"
+              alt="Ícone de Piercing"
               width={28}
               height={28}
               className="object-contain"
@@ -351,27 +435,21 @@ const Authentication = () => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent className="w-full">
-                    <SelectItem value="corte-cabelo">
+                    <SelectItem value="manicure">
                       <div className="flex items-center gap-4">
-                        <div
-                          className="flex h-4 w-4 items-center justify-center"
-                          style={{
-                            filter:
-                              "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
-                          }}
-                        >
+                        <div className="flex h-4 w-4 items-center justify-center">
                           <Image
-                            src="/assets/hair-icon.svg"
-                            alt="Ícone de Corte de Cabelo"
+                            src="/assets/manicure-icon.png"
+                            alt="Ícone de Manicure"
                             width={16}
                             height={16}
                             className="object-contain"
                           />
                         </div>
-                        Corte de Cabelo
+                        Manicure
                       </div>
                     </SelectItem>
-                    <SelectItem value="corte-barba">
+                    <SelectItem value="pedicure">
                       <div className="flex items-center gap-4">
                         <div
                           className="flex h-4 w-4 items-center justify-center"
@@ -381,17 +459,17 @@ const Authentication = () => {
                           }}
                         >
                           <Image
-                            src="/assets/beard-icon.svg"
-                            alt="Ícone de Corte de Barba"
+                            src="/assets/pedicure-icon.svg"
+                            alt="Ícone de Pedicure"
                             width={16}
                             height={16}
                             className="object-contain"
                           />
                         </div>
-                        Corte de Barba
+                        Pedicure
                       </div>
                     </SelectItem>
-                    <SelectItem value="cabelo-barba">
+                    <SelectItem value="cilios">
                       <div className="flex items-center gap-4">
                         <div
                           className="flex h-4 w-4 items-center justify-center"
@@ -401,14 +479,74 @@ const Authentication = () => {
                           }}
                         >
                           <Image
-                            src="/assets/hairstyle-icon.svg"
-                            alt="Ícone de Cabelo e Barba"
+                            src="/assets/eyelash-icon.svg"
+                            alt="Ícone de Cílios"
                             width={16}
                             height={16}
                             className="object-contain"
                           />
                         </div>
-                        Cabelo e Barba
+                        Cílios
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="sobrancelhas">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className="flex h-4 w-4 items-center justify-center"
+                          style={{
+                            filter:
+                              "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                          }}
+                        >
+                          <Image
+                            src="/assets/eyebrow-icon.svg"
+                            alt="Ícone de Sobrancelhas"
+                            width={16}
+                            height={16}
+                            className="object-contain"
+                          />
+                        </div>
+                        Sobrancelhas
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="micropigmentacao">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className="flex h-4 w-4 items-center justify-center"
+                          style={{
+                            filter:
+                              "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                          }}
+                        >
+                          <Image
+                            src="/assets/micropigmentation-icon.svg"
+                            alt="Ícone de Micropigmentação"
+                            width={16}
+                            height={16}
+                            className="object-contain"
+                          />
+                        </div>
+                        Micropigmentação
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="piercing">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className="flex h-4 w-4 items-center justify-center"
+                          style={{
+                            filter:
+                              "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                          }}
+                        >
+                          <Image
+                            src="/assets/piercing-icon.svg"
+                            alt="Ícone de Piercing"
+                            width={16}
+                            height={16}
+                            className="object-contain"
+                          />
+                        </div>
+                        Piercing
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -613,13 +751,13 @@ const Authentication = () => {
             </div>
 
             {/* Logo Circular */}
-            <div className="flex h-23 w-23 items-center justify-center md:h-20 md:w-20">
+            <div className="flex h-23 w-23 items-center justify-center duration-300 hover:scale-105 md:h-20 md:w-20">
               <Image
-                src="/logo.png"
-                alt="Logo BarberFy"
+                src="/logo.jpg"
+                alt="Logo LuluNail"
                 width={300}
                 height={300}
-                className="rounded-full object-cover"
+                className="hover: rounded-full object-cover shadow-lg duration-500 hover:shadow-xl"
               />
             </div>
           </div>
@@ -690,7 +828,7 @@ const Authentication = () => {
                             {appointment.appointmentTime}
                           </p>
                           <p className="text-muted-foreground text-sm font-medium">
-                            <strong>Barbeiro:</strong> BarberFy Team
+                            <strong>Barbeiro:</strong> Lulu Nail Team
                           </p>
                           <p className="text-muted-foreground text-sm font-medium">
                             <strong>Serviço:</strong>{" "}
@@ -837,110 +975,220 @@ const Authentication = () => {
             Nossos Serviços:
           </p>
 
-          {/* Grid de Serviços - Responsivo: 2 colunas em mobile, 3 colunas em desktop */}
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {/* Serviço 1 - Corte de Cabelo */}
-            <Link href="/services?service=corte-cabelo">
-              <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
-                <div className="flex h-28 w-28 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-                  <div
-                    className="flex h-12 w-12 items-center justify-center"
-                    style={{
-                      filter:
-                        "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
-                    }}
+          {/* Carrossel de Serviços - 4 itens no desktop, 2 no mobile */}
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full"
+            setApi={setCarouselApi}
+          >
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {/* Serviço 1 - Manicure */}
+              <CarouselItem className="basis-1/2 pl-2 md:basis-1/4 md:pl-4">
+                <div className="flex flex-col items-center gap-2">
+                  <Link
+                    href="/services?service=manicure"
+                    className="inline-block"
                   >
-                    <Image
-                      src="/assets/hair-icon.svg"
-                      alt="Ícone de Corte de Cabelo"
-                      width={48}
-                      height={48}
-                      className="object-contain"
-                    />
-                  </div>
+                    <div className="flex h-28 w-28 cursor-pointer items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center"
+                        style={{
+                          filter:
+                            "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                        }}
+                      >
+                        <Image
+                          src="/assets/manicure-icon.png"
+                          alt="Ícone de Manicure"
+                          width={48}
+                          height={48}
+                          className="object-contain"
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                  <p className="text-center text-sm font-medium text-gray-700">
+                    Manicure
+                  </p>
                 </div>
-                <p className="text-center text-sm font-medium text-gray-700">
-                  Corte de Cabelo
-                </p>
-              </div>
-            </Link>
+              </CarouselItem>
 
-            {/* Serviço 2 - Barba */}
-            <Link href="/services?service=corte-barba">
-              <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
-                <div className="flex h-28 w-28 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-                  <div
-                    className="flex h-12 w-12 items-center justify-center"
-                    style={{
-                      filter:
-                        "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
-                    }}
+              {/* Serviço 2 - Pedicure */}
+              <CarouselItem className="basis-1/2 pl-2 md:basis-1/4 md:pl-4">
+                <div className="flex flex-col items-center gap-2">
+                  <Link
+                    href="/services?service=pedicure"
+                    className="inline-block"
                   >
-                    <Image
-                      src="/assets/beard-icon.svg"
-                      alt="Ícone de Barba"
-                      width={48}
-                      height={48}
-                      className="object-contain"
-                    />
-                  </div>
+                    <div className="flex h-28 w-28 cursor-pointer items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center"
+                        style={{
+                          filter:
+                            "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                        }}
+                      >
+                        <Image
+                          src="/assets/pedicure-icon.png"
+                          alt="Ícone de Pedicure"
+                          width={48}
+                          height={48}
+                          className="object-contain"
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                  <p className="text-center text-sm font-medium text-gray-700">
+                    Pedicure
+                  </p>
                 </div>
-                <p className="text-center text-sm font-medium text-gray-700">
-                  Barba
-                </p>
-              </div>
-            </Link>
+              </CarouselItem>
 
-            {/* Serviço 3 - Barba + Cabelo */}
-            <Link href="/services?service=cabelo-barba">
-              <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
-                <div className="flex h-28 w-28 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-                  <div
-                    className="flex h-12 w-12 items-center justify-center"
-                    style={{
-                      filter:
-                        "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
-                    }}
+              {/* Serviço 3 - Cílios */}
+              <CarouselItem className="basis-1/2 pl-2 md:basis-1/4 md:pl-4">
+                <div className="flex flex-col items-center gap-2">
+                  <Link
+                    href="/services?service=cilios"
+                    className="inline-block"
                   >
-                    <Image
-                      src="/assets/hairstyle-icon.svg"
-                      alt="Ícone de Barba + Cabelo"
-                      width={48}
-                      height={48}
-                      className="object-contain"
-                    />
-                  </div>
+                    <div className="flex h-28 w-28 cursor-pointer items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center"
+                        style={{
+                          filter:
+                            "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                        }}
+                      >
+                        <Image
+                          src="/assets/eyelash-icon.png"
+                          alt="Ícone de Cílios"
+                          width={48}
+                          height={48}
+                          className="object-contain"
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                  <p className="text-center text-sm font-medium text-gray-700">
+                    Cílios
+                  </p>
                 </div>
-                <p className="text-center text-sm font-medium text-gray-700">
-                  Barba + Cabelo
-                </p>
-              </div>
-            </Link>
-            <Link href="/services?service=cabelo-barba">
-              <div className="flex cursor-pointer flex-col items-center gap-3 transition-transform duration-200 hover:scale-105 active:scale-95">
-                <div className="flex h-28 w-28 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-                  <div
-                    className="flex h-22 w-22 items-center justify-center"
-                    style={{
-                      filter:
-                        "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
-                    }}
+              </CarouselItem>
+
+              {/* Serviço 4 - Sobrancelhas */}
+              <CarouselItem className="basis-1/2 pl-2 md:basis-1/4 md:pl-4">
+                <div className="flex flex-col items-center gap-2">
+                  <Link
+                    href="/services?service=sobrancelhas"
+                    className="inline-block"
                   >
-                    <Image
-                      src="/assets/eyebrow-icon.svg"
-                      alt="Ícone de Barba + Cabelo"
-                      width={248}
-                      height={248}
-                      className="fill-background"
-                    />
-                  </div>
+                    <div className="flex h-28 w-28 cursor-pointer items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center"
+                        style={{
+                          filter:
+                            "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                        }}
+                      >
+                        <Image
+                          src="/assets/eyebrow-icon.png"
+                          alt="Ícone de Sobrancelhas"
+                          width={48}
+                          height={48}
+                          className="object-contain"
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                  <p className="text-center text-sm font-medium text-gray-700">
+                    Sobrancelhas
+                  </p>
                 </div>
-                <p className="text-center text-sm font-medium text-gray-700">
-                  Sobrancelha
-                </p>
-              </div>
-            </Link>
-          </div>
+              </CarouselItem>
+
+              {/* Serviço 5 - Micropigmentação */}
+              <CarouselItem className="basis-1/2 pl-2 md:basis-1/4 md:pl-4">
+                <div className="flex flex-col items-center gap-2">
+                  <Link
+                    href="/services?service=micropigmentacao"
+                    className="inline-block"
+                  >
+                    <div className="flex h-28 w-28 cursor-pointer items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center"
+                        style={{
+                          filter:
+                            "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                        }}
+                      >
+                        <Image
+                          src="/assets/micropigmentation-icon.png"
+                          alt="Ícone de Micropigmentação"
+                          width={158}
+                          height={158}
+                          className="object-cover"
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                  <p className="text-center text-sm font-medium text-gray-700">
+                    Micropigmentação
+                  </p>
+                </div>
+              </CarouselItem>
+
+              {/* Serviço 6 - Piercing */}
+              <CarouselItem className="basis-1/2 pl-2 md:basis-1/4 md:pl-4">
+                <div className="flex flex-col items-center gap-2">
+                  <Link
+                    href="/services?service=piercing"
+                    className="inline-block"
+                  >
+                    <div className="flex h-28 w-28 cursor-pointer items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center"
+                        style={{
+                          filter:
+                            "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+                        }}
+                      >
+                        <Image
+                          src="/assets/piercing-icon.png"
+                          alt="Ícone de Piercing"
+                          width={48}
+                          height={48}
+                          className="object-contain"
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                  <p className="text-center text-sm font-medium text-gray-700">
+                    Piercing
+                  </p>
+                </div>
+              </CarouselItem>
+            </CarouselContent>
+
+            {/* Indicadores de navegação (bolinhas) */}
+            <div className="mt-4 flex items-center justify-center gap-2">
+              {scrollSnaps.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => carouselApi?.scrollTo(index)}
+                  className={cn(
+                    "h-2 rounded-full transition-all duration-300",
+                    currentSlide === index
+                      ? "bg-primary w-8"
+                      : "w-2 bg-gray-300",
+                  )}
+                  aria-label={`Ir para página ${index + 1}`}
+                />
+              ))}
+            </div>
+          </Carousel>
           <p className="text-muted-foreground mt-6 mb-2 text-sm font-bold">
             Nossa Localização:
           </p>
@@ -959,7 +1207,7 @@ const Authentication = () => {
             <div className="flex flex-col gap-3">
               <div>
                 <h3 className="mb-1 text-lg font-bold text-gray-700">
-                  BarberFy
+                  Lulu Nail
                 </h3>
                 <p className="text-muted-foreground text-sm">
                   Rua das Flores, 123 - Centro
@@ -990,7 +1238,7 @@ const Authentication = () => {
             </div>
           </div>
           <p className="text-muted-foreground mt-6 text-xs font-bold">
-            © 2025 BarberFy - Todos os direitos reservados.
+            © 2025 Lulu Nail - Todos os direitos reservados.
           </p>
         </div>
         <Link
@@ -1003,7 +1251,7 @@ const Authentication = () => {
             The ripple is created dynamically and removed after animation.
           */}
           <span
-            className="group relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-violet-700 to-violet-500 text-white shadow-lg ring-0 transition-transform duration-200 hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:outline-none active:scale-95"
+            className="group animated-background from-primary relative flex h-18 w-18 items-center justify-center rounded-full bg-gradient-to-tr to-pink-500 shadow-md"
             onMouseDown={(e) => {
               const target = e.currentTarget as HTMLSpanElement;
               // create ripple

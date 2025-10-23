@@ -14,7 +14,7 @@ import {
 
 export const Header = () => {
   const handleLogout = () => {
-    localStorage.removeItem("barberfy_user_id");
+    localStorage.removeItem("Lulu Nail_user_id");
     window.location.href = "/authentication";
   };
 
@@ -23,7 +23,7 @@ export const Header = () => {
       <div className="flex items-center rounded-md">
         <Link href="/">
           <h2 className="text-primary cursor-pointer text-2xl font-bold transition-colors hover:opacity-80">
-            BarberFy
+            Lulu Nail
           </h2>
         </Link>
       </div>
@@ -32,7 +32,7 @@ export const Header = () => {
           <Menu className="h-6 w-6 text-gray-700" />
         </DropdownMenuTrigger>
         <DropdownMenuContent className="mr-2">
-          <DropdownMenuLabel>BarberFy</DropdownMenuLabel>
+          <DropdownMenuLabel>Lulu Nail</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link href="/services" className="cursor-pointer">

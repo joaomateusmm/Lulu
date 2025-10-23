@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarSearch, Scissors } from "lucide-react";
+import { CalendarSearch, Hand, Search } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -29,7 +29,7 @@ const Authentication = () => {
     <div className="flex max-w-md flex-col items-center gap-6 text-center">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold text-gray-800">
-          Bem-vindo à BarberFy
+          Bem-vindo à Lulu Nail
         </h1>
         <p className="text-gray-600">O que você deseja fazer?</p>
       </div>
@@ -40,10 +40,10 @@ const Authentication = () => {
           onClick={() => handleViewChange("schedule")}
         >
           <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-            <Scissors className="h-14 w-14 rotate-270 text-gray-700" />
+            <Hand className="h-14 w-14 text-gray-700" />
           </div>
           <p className="text-sm font-medium text-gray-700">
-            Agendar um<br></br> Corte
+            Agendar um<br></br> Serviço
           </p>
         </div>
 
@@ -52,7 +52,7 @@ const Authentication = () => {
           onClick={() => handleViewChange("appointments")}
         >
           <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-            <CalendarSearch className="h-14 w-14 text-gray-700" />
+            <Search className="h-14 w-14 text-gray-700" />
           </div>
           <p className="text-sm font-medium text-gray-700">
             Ver meus<br></br> Agendamentos
@@ -125,13 +125,13 @@ const Authentication = () => {
 
       {/* Logo fixa */}
       <div className="flex justify-center">
-        <div className="mt-5 flex h-35 w-35 items-center justify-center rounded-full bg-white shadow-lg">
+        <div className="mt-5 flex h-35 w-35 items-center justify-center rounded-full bg-white shadow-lg duration-300 hover:scale-105 hover:shadow-xl">
           <Image
-            src="/logo.png"
-            alt="Logo BarberFy"
-            width={120}
-            height={120}
-            className="rounded-full object-cover"
+            src="/logo.jpg"
+            alt="Logo Lulu Nail"
+            width={300}
+            height={300}
+            className="rounded-full"
           />
         </div>
       </div>
@@ -152,7 +152,7 @@ const Authentication = () => {
       {/* Rodapé fixo na parte inferior */}
       <footer className="flex justify-center py-4">
         <p className="text-sm text-gray-500">
-          © 2025 BarberFy - Todos os direitos reservados
+          © 2025 Lulu Nail - Todos os direitos reservados
         </p>
       </footer>
     </div>

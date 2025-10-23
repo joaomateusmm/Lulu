@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BarberFy - Agendamento de Cortes",
-  description: "Agende seu corte na BarberFy de forma rápida e fácil",
+  title: "Lulu Nail - Agendamento de Serviços",
+  description: "Agende seu serviço na Lulu Nail de forma rápida e fácil",
   icons: {
     icon: "/favicon.ico",
   },

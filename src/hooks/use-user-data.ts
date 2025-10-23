@@ -34,7 +34,7 @@ export function useUserData(): UseUserDataReturn {
       setLoading(true);
       setError(null);
 
-      const userId = localStorage.getItem("barberfy_user_id");
+      const userId = localStorage.getItem("Lulu Nail_user_id");
 
       if (!userId) {
         // Se não há usuário logado, redirecionar para autenticação
