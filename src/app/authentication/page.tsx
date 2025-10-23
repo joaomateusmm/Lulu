@@ -40,7 +40,17 @@ const Authentication = () => {
           onClick={() => handleViewChange("schedule")}
         >
           <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-            <Hand className="h-14 w-14 text-gray-700" />
+            <Image
+              src="/assets/manicure-icon.png"
+              alt="Ícone de Manicure"
+              width={50}
+              height={50}
+              className="object-contain"
+              style={{
+                filter:
+                  "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+              }}
+            />
           </div>
           <p className="text-sm font-medium text-gray-700">
             Agendar um<br></br> Serviço
@@ -52,7 +62,17 @@ const Authentication = () => {
           onClick={() => handleViewChange("appointments")}
         >
           <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
-            <Search className="h-14 w-14 text-gray-700" />
+            <Image
+              src="/assets/eyebrow-icon.png"
+              alt="Ícone de Cílios"
+              width={50}
+              height={50}
+              className="object-contain"
+              style={{
+                filter:
+                  "brightness(0) saturate(100%) invert(32%) sepia(8%) saturate(665%) hue-rotate(202deg) brightness(73%) contrast(85%)",
+              }}
+            />
           </div>
           <p className="text-sm font-medium text-gray-700">
             Ver meus<br></br> Agendamentos
